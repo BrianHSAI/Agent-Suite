@@ -259,33 +259,36 @@
             speechSynthesis.speak(utterance);
         }
 
-        async function setupRecording() {
+        async function setupRecording(includeMicrophone = true) {
             try {
-                // Request both microphone and display media (for system audio)
-                const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                let micStream;
+                // Kun anmod om mikrofon, hvis det er påkrævet
+                if (includeMicrophone) {
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                }
                 
-                // Request screen capture with audio
+                // Anmod om skærmoptagelse med lyd
                 const displayStream = await navigator.mediaDevices.getDisplayMedia({
                     video: true,
                     audio: true
                 });
                 
-                // Create audio context
+                // Opret lydkontekst
                 audioContext = new AudioContext();
                 
-                // Create sources for both streams
-                const micSource = audioContext.createMediaStreamSource(micStream);
-                
-                // Get audio tracks from display stream
-                const displayAudioTracks = displayStream.getAudioTracks();
-                
-                // Create a destination for the combined audio
+                // Opret en destination for den kombinerede lyd
                 const destination = audioContext.createMediaStreamDestination();
                 
-                // Connect microphone to destination
-                micSource.connect(destination);
+                // Tilføj mikrofonlyd, hvis den er inkluderet
+                if (includeMicrophone && micStream) {
+                    const micSource = audioContext.createMediaStreamSource(micStream);
+                    micSource.connect(destination);
+                }
                 
-                // If we have system audio, add it to the mix
+                // Få lydspor fra skærmoptagelse
+                const displayAudioTracks = displayStream.getAudioTracks();
+                
+                // Hvis vi har systemlyd, tilføj den til mixet
                 if (displayAudioTracks.length > 0) {
                     const displaySource = audioContext.createMediaStreamSource(
                         new MediaStream([displayAudioTracks[0]])
@@ -293,10 +296,10 @@
                     displaySource.connect(destination);
                 }
                 
-                // Create a combined stream with audio from both sources
+                // Opret en kombineret stream med lyd fra begge kilder (eller kun systemlyd)
                 combinedStream = destination.stream;
                 
-                // Create media recorder with the combined stream
+                // Opret mediaRecorder med den kombinerede stream
                 mediaRecorder = new MediaRecorder(combinedStream);
                 mediaRecorder.ondataavailable = event => {
                     if (event.data.size > 0) {
@@ -319,7 +322,7 @@
             if (!isRecording) {
                 statusElement.innerText = "⏳ Forbereder optagelse...";
                 
-                const success = await setupRecording();
+                const success = await setupRecording(true); // Med mikrofon
                 if (!success) return;
                 
                 audioChunks = [];
@@ -382,12 +385,13 @@
             const statusElement = document.getElementById("status");
             statusElement.innerText = "⏳ Forbereder AI-podcast...";
             
-            const success = await setupRecording();
+            // Sætter optagelse op UDEN mikrofon
+            const success = await setupRecording(false);
             if (!success) return;
             
             audioChunks = [];
             mediaRecorder.start();
-            statusElement.innerText = "🔴 Optager AI-podcast...";
+            statusElement.innerText = "🔴 Optager AI-podcast (kun systemlyd)...";
 
             let boxes = document.querySelectorAll('.box');
             for (let box of boxes) {
