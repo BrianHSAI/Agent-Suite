@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Prompt Generator</title>
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(to right, #e6f2ff, #f0e6ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 42rem;
+            width: 100%;
+        }
+        h1 {
+            font-size: 1.875rem;
+            font-weight: bold;
+            text-align: center;
+            color: #1a202c;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+        }
+        button {
+            width: 100%;
+            padding: 0.5rem;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .checkbox-group input {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quiz Prompt Generator</h1>
+        
+        <div class="form-group">
+            <label for="name">Navn</label>
+            <input type="text" id="name" placeholder="Indtast dit navn">
+        </div>
+
+        <div class="form-group">
+            <label for="audience">Publikum</label>
+            <input type="text" id="audience" placeholder="f.eks. gymnasieelever">
+        </div>
+        
+        <div class="form-group">
+            <label for="topic">Emne</label>
+            <input type="text" id="topic" placeholder="f.eks. dansk litteratur">
+        </div>
+        
+        <div class="form-group">
+            <label for="questionCount">Antal spørgsmål</label>
+            <input type="text" id="questionCount" placeholder="f.eks. 10">
+        </div>
+        
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="useSource">
+            <label for="useSource">Anvende kilde</label>
+        </div>
+        
+        <div class="form-group" id="sourceGroup" style="display: none;">
+            <label for="source">Kilde</label>
+            <input type="text" id="source" placeholder="Indsæt kilde">
+        </div>
+        
+        <div class="form-group">
+            <label for="language">Sprog</label>
+            <input type="text" id="language" placeholder="f.eks. dansk">
+        </div>
+        
+        <div class="form-group">
+            <label for="fileType">Filtype</label>
+            <select id="fileType">
+                <option value="">Vælg filtype</option>
+                <option value="txt">Tekst (.txt)</option>
+                <option value="docx">Word (.docx)</option>
+                <option value="pdf">PDF (.pdf)</option>
+                <option value="md">Markdown (.md)</option>
+                <option value="html">HTML (.html)</option>
+            </select>
+        </div>
+
+        <div id="htmlOptions" style="display: none;">
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="editableHtml">
+                <label for="editableHtml">Gør det muligt at skrive på hjemmesiden</label>
+            </div>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="saveQuizButton">
+                <label for="saveQuizButton">Tilføj "Gem quiz"-knap (downloader som .doc-fil)</label>
+            </div>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="sendAnswersButton">
+                <label for="sendAnswersButton">Tilføj "Send svar"-knap</label>
+            </div>
+            <div class="form-group" id="emailGroup" style="display: none;">
+                <label for="emailAddress">E-mail-adresse til at modtage svar</label>
+                <input type="email" id="emailAddress" placeholder="f.eks. laerer@skole.dk">
+            </div>
+        </div>
+        
+        <button onclick="generatePrompt()">Generer Prompt</button>
+        
+        <div id="generatedPromptGroup" style="display: none; margin-top: 1.5rem;">
+            <div class="form-group">
+                <label for="generatedPrompt">Genereret Prompt</label>
+                <textarea id="generatedPrompt" readonly rows="6"></textarea>
+            </div>
+            <button onclick="copyToClipboard()">Kopier til udklipsholder</button>
+            <p id="copyFeedback" style="text-align: center; color: #059669; font-size: 0.875rem;"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('useSource').addEventListener('change', function() {
+            document.getElementById('sourceGroup').style.display = this.checked ? 'block' : 'none';
+        });
+
+        document.getElementById('fileType').addEventListener('change', function() {
+            document.getElementById('htmlOptions').style.display = this.value === 'html' ? 'block' : 'none';
+        });
+
+        document.getElementById('sendAnswersButton').addEventListener('change', function() {
+            document.getElementById('emailGroup').style.display = this.checked ? 'block' : 'none';
+        });
+
+        function generatePrompt() {
+            // Placeholder function for generating the prompt
+            // In a real implementation, this would gather all the form data and generate the prompt
+            document.getElementById('generatedPrompt').value = "Dette er en eksempel-prompt. I en rigtig implementering ville denne tekst være genereret baseret på brugerens input.";
+            document.getElementById('generatedPromptGroup').style.display = 'block';
+        }
+
+        function copyToClipboard() {
+            var promptText = document.getElementById('generatedPrompt');
+            promptText.select();
+            document.execCommand('copy');
+            
+            var feedback = document.getElementById('copyFeedback');
+            feedback.textContent = 'Kopieret!';
+            setTimeout(function() {
+                feedback.textContent = '';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

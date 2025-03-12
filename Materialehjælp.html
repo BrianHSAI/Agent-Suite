@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Undervisningsmateriale Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f3f3f3;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background-color: #0078d4;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    main {
+      max-width: 800px;
+      margin: 30px auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+      color: #0078d4;
+    }
+    label {
+      font-weight: bold;
+    }
+    input, select, textarea, button {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    fieldset {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin: 20px 0;
+      padding: 10px 15px;
+    }
+    legend {
+      font-weight: bold;
+      color: #0078d4;
+    }
+    .option-row {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .option-row input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    .option-label {
+      flex: 1;
+      margin-left: 5px;
+    }
+    .input-wrapper {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #outputPrompt {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f3f3f3;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Undervisningsmateriale Generator</h1>
+  </header>
+  <main>
+    <form id="materialForm">
+      <label for="language">Sprog:</label>
+      <input type="text" id="language" placeholder="Angiv sprog" required>
+
+      <label for="level">CERF-niveau:</label>
+      <select id="level" required>
+        <option value="A1">A1</option>
+        <option value="A2">A2</option>
+        <option value="B1">B1</option>
+        <option value="B2">B2</option>
+        <option value="C1">C1</option>
+        <option value="C2">C2</option>
+      </select>
+
+      <label for="type">Vælg type:</label>
+      <select id="type" required onchange="toggleTopicUrl()">
+        <option value="fiktionstekst">Fiktionstekst</option>
+        <option value="fakta-tekst">Fakta-tekst</option>
+        <option value="URL">URL</option>
+      </select>
+
+      <div id="topicContainer">
+        <label for="topic">Emne:</label>
+        <input type="text" id="topic" placeholder="Angiv emne" required>
+      </div>
+
+      <div id="urlContainer" style="display: none;">
+        <label for="url">URL:</label>
+        <input type="url" id="url" placeholder="Indsæt URL" required>
+      </div>
+
+      <fieldset>
+        <legend>Vælg, hvad du vil generere:</legend>
+        <div class="option-row">
+          <input type="checkbox" id="vocabulary" value="Ordforrådsøvelser">
+          <label for="vocabulary" class="option-label">Ordforrådsøvelser</label>
+          <input type="number" id="vocabCount" placeholder="Antal" min="1" style="max-width: 70px;">
+          <input type="text" id="vocabFocus" placeholder="Hvad skal øvelserne teste?">
+        </div>
+        <div class="option-row">
+          <input type="checkbox" id="whileReading" value="While-Reading spørgsmål">
+          <label for="whileReading" class="option-label">While-Reading spørgsmål</label>
+          <input type="number" id="whileReadingCount" placeholder="Antal" min="1" style="max-width: 70px;">
+        </div>
+        <div class="option-row">
+          <input type="checkbox" id="analysis" value="Analyse-spørgsmål">
+          <label for="analysis" class="option-label">Analyse-spørgsmål</label>
+          <input type="number" id="analysisCount" placeholder="Antal" min="1" style="max-width: 70px;">
+        </div>
+        <div class="option-row">
+          <input type="checkbox" id="discussion" value="Diskussionsspørgsmål">
+          <label for="discussion" class="option-label">Diskussionsspørgsmål</label>
+          <input type="number" id="discussionCount" placeholder="Antal" min="1" style="max-width: 70px;">
+        </div>
+        <div class="option-row">
+          <input type="checkbox" id="quiz" value="Multiple-Choice Quiz">
+          <label for="quiz" class="option-label">Multiple-Choice Quiz</label>
+          <input type="number" id="quizCount" placeholder="Antal" min="1" style="max-width: 70px;">
+        </div>
+      </fieldset>
+
+      <button type="button" onclick="generatePrompt()">Generer Prompt</button>
+      <button type="button" onclick="copyToClipboard()">Kopier Prompt til Udklipsholder</button>
+    </form>
+
+    <div id="outputPrompt"></div>
+  </main>
+  <script>
+    function toggleTopicUrl() {
+      const type = document.getElementById('type').value;
+      const topicContainer = document.getElementById('topicContainer');
+      const urlContainer = document.getElementById('urlContainer');
+      
+      if (type === 'URL') {
+        topicContainer.style.display = 'none';
+        urlContainer.style.display = 'block';
+        document.getElementById('url').required = true;
+        document.getElementById('topic').required = false;
+      } else {
+        topicContainer.style.display = 'block';
+        urlContainer.style.display = 'none';
+        document.getElementById('url').required = false;
+        document.getElementById('topic').required = true;
+      }
+    }
+
+    function generatePrompt() {
+      const language = document.getElementById('language').value;
+      const level = document.getElementById('level').value;
+      const type = document.getElementById('type').value;
+      const topic = document.getElementById('topic').value;
+      const url = document.getElementById('url').value;
+
+      let prompt = `Du er ekspert i at lave undervisningsmaterialer til elever på ${level}.\n`;
+
+      if (type === 'URL') {
+        prompt += `Skriv først et referat af teksten baseret på vedhæftede kilde: ${url}.\n`;
+      } else {
+        prompt += `Skriv først en ${type} om ${topic}.\n`;
+      }
+
+      if (document.getElementById('vocabulary').checked) {
+        const vocabCount = document.getElementById('vocabCount').value;
+        const vocabFocus = document.getElementById('vocabFocus').value || 'et relevant emne';
+        prompt += `Generer på baggrund af emnet og den genererede tekst ${vocabCount} ordforrådsøvelser, som tester eleverne i ${vocabFocus} på ${level}.\n`;
+      }
+      if (document.getElementById('whileReading').checked) {
+        const count = document.getElementById('whileReadingCount').value;
+        prompt += `Generer ${count} While-Reading spørgsmål til teksten på ${level}.\n`;
+      }
+      if (document.getElementById('analysis').checked) {
+        const count = document.getElementById('analysisCount').value;
+        prompt += `Generer ${count} Analyse-spørgsmål til teksten på ${level}.\n`;
+      }
+      if (document.getElementById('discussion').checked) {
+        const count = document.getElementById('discussionCount').value;
+        prompt += `Generer ${count} Diskussionsspørgsmål til teksten på ${level}.\n`;
+      }
+      if (document.getElementById('quiz').checked) {
+        const count = document.getElementById('quizCount').value;
+        prompt += `Generer en Multiple-Choice Quiz med ${count} spørgsmål.\n`;
+      }
+      prompt += `Skriv på ${language}.`;
+
+      document.getElementById('outputPrompt').textContent = prompt;
+    }
+
+    function copyToClipboard() {
+      const prompt = document.getElementById('outputPrompt');
+      navigator.clipboard.writeText(prompt.textContent).then(() => {
+        alert("Prompt kopieret til udklipsholder!");
+      });
+    }
+  </script>
+</body>
+</html>

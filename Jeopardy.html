@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Jeopardy Spil</title>
+    <style>
+        :root {
+            --primary-color: #2F80ED;
+            --secondary-color: #4F4F4F;
+            --background-color: #F5F6F8;
+            --card-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--background-color);
+            color: var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .setup-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            flex: 1;
+        }
+
+        .game-container {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+            padding: 2rem;
+            background: white;
+            flex: 1;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1rem;
+            height: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card.disabled {
+            background: black;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        .category-header {
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .point-value {
+            background: var(--secondary-color);
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .primary-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .secondary-btn {
+            background: #e0e0e0;
+            color: var(--secondary-color);
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .question-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 1000;
+        }
+
+        .question-content {
+            max-width: 600px;
+            padding: 2rem;
+            text-align: center;
+            background: white;
+            color: var(--secondary-color);
+            border-radius: 8px;
+        }
+
+        .question-editor {
+            margin-top: 2rem;
+        }
+
+        .question-editor input, .question-editor select {
+            margin-bottom: 1rem;
+        }
+
+        .mini-grid {
+            display: grid;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .mini-card {
+            background: white;
+            border-radius: 4px;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.8rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .mini-category-header {
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .mini-point-value {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .team-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .team-panel {
+            margin-top: 2rem;
+        }
+
+        .team {
+            margin-bottom: 1rem;
+        }
+
+        .team-name {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .score {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .prompt-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background: var(--secondary-color);
+            color: white;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <h1 style="margin-bottom: 2rem; color: var(--primary-color);">Jeopardy Spilopsætning</h1>
+        
+        <div class="input-group">
+            <label for="topic">Emne</label>
+            <input type="text" id="topic" placeholder="Eksempel: Historie, Videnskab, Geografi" oninput="generatePrompt()">
+        </div>
+
+        <div class="prompt-section" id="promptSection" style="display: none;">
+            <p id="generatedPrompt"></p>
+            <button class="secondary-btn" onclick="copyPrompt()" style="margin-top: 1rem;">Kopier til udklipsholder</button>
+        </div>
+
+        <div class="input-group">
+            <label for="categories">Kategorier (kommasepareret)</label>
+            <input type="text" id="categories" placeholder="Eksempel: Historie, Videnskab, Geografi" oninput="updateCategoryDropdown()">
+        </div>
+
+        <div class="question-editor">
+            <h3>Tilføj Spørgsmål og Svar</h3>
+            <select id="inputCategory" placeholder="Kategori">
+                <!-- Kategorier indsættes dynamisk her -->
+            </select>
+            <select id="inputPoints">
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="300">300</option>
+                <option value="400">400</option>
+                <option value="500">500</option>
+            </select>
+            <input type="text" id="inputQuestion" placeholder="Spørgsmål">
+            <input type="text" id="inputAnswer" placeholder="Svar">
+            <button class="primary-btn" onclick="addQuestion()">Tilføj Spørgsmål</button>
+        </div>
+
+        <div class="mini-grid" id="miniGrid"></div>
+
+        <button class="primary-btn" onclick="startGame()">Kør Spil</button>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="team-controls">
+            <button class="primary-btn" onclick="addTeam()">+ Hold</button>
+            <button class="secondary-btn" onclick="removeTeam()">- Hold</button>
+        </div>
+
+        <div class="team-panel" id="teamPanel"></div>
+
+        <div class="grid" id="gameGrid"></div>
+    </div>
+
+    <footer>
+        Lavet af: BrianHS - <a href="mailto:kontakt@brianhs.dk" style="color: white; text-decoration: underline;">kontakt@brianhs.dk</a>
+    </footer>
+
+<script>
+    let gameData = [];
+    let teams = [];
+    let teamCounter = 1;
+
+    function generatePrompt() {
+        const topic = document.getElementById('topic').value;
+        if (topic) {
+            const prompt = `Lav 6 kategorier til en quiz om ${topic}. Lav til hver kategori 5 spørgsmål med svar. Opstil det på en overskuelig måde.`;
+            document.getElementById('generatedPrompt').textContent = prompt;
+            document.getElementById('promptSection').style.display = 'block';
+        } else {
+            document.getElementById('promptSection').style.display = 'none';
+        }
+    }
+
+    function copyPrompt() {
+        const text = document.getElementById('generatedPrompt').textContent;
+        navigator.clipboard.writeText(text);
+        alert('Prompt kopieret!');
+    }
+
+    function updateCategoryDropdown() {
+        const categoriesInput = document.getElementById('categories').value;
+        const categories = categoriesInput.split(',').map(c => c.trim());
+        const categoryDropdown = document.getElementById('inputCategory');
+        
+        categoryDropdown.innerHTML = '';
+        categories.forEach(category => {
+            if (category) {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryDropdown.appendChild(option);
+            }
+        });
+    }
+
+    function addQuestion() {
+        const category = document.getElementById('inputCategory').value;
+        const points = parseInt(document.getElementById('inputPoints').value);
+        const question = document.getElementById('inputQuestion').value;
+        const answer = document.getElementById('inputAnswer').value;
+
+        if (!category || !points || !question || !answer) {
+            alert('Udfyld alle felter');
+            return;
+        }
+
+        const existingCategory = gameData.find(c => c.category === category);
+        if (existingCategory) {
+            existingCategory.questions.push({ points, question, answer });
+            existingCategory.questions.sort((a, b) => a.points - b.points); // Sorter spørgsmål efter pointværdi
+        } else {
+            gameData.push({
+                category,
+                questions: [{ points, question, answer }]
+            });
+        }
+
+        alert('Spørgsmål tilføjet!');
+        document.getElementById('inputQuestion').value = '';
+        document.getElementById('inputAnswer').value = '';
+        updateCategoryDropdown();
+        renderMiniGrid();
+    }
+
+    function deleteQuestion(category, points) {
+        const existingCategory = gameData.find(c => c.category === category);
+        if (existingCategory) {
+            existingCategory.questions = existingCategory.questions.filter(q => q.points !== points);
+            if (existingCategory.questions.length === 0) {
+                gameData = gameData.filter(c => c.category !== category);
+            }
+        }
+
+        updateCategoryDropdown();
+        renderMiniGrid();
+    }
+
+    function renderMiniGrid() {
+        const miniGrid = document.getElementById('miniGrid');
+        miniGrid.innerHTML = '';
+
+        const categories = [...new Set(gameData.map(c => c.category))];
+        miniGrid.style.gridTemplateColumns = `repeat(${categories.length}, 1fr)`;
+
+        categories.forEach(category => {
+            const header = document.createElement('div');
+            header.className = 'mini-card mini-category-header';
+            header.textContent = category;
+            miniGrid.appendChild(header);
+        });
+
+        for (let i = 0; i < 5; i++) {
+            categories.forEach(category => {
+                const questions = gameData.find(c => c.category === category)?.questions || [];
+                const question = questions[i];
+                const cell = document.createElement('div');
+                cell.className = 'mini-card mini-point-value';
+                cell.textContent = question ? question.points : '';
+                if (question) {
+                    cell.onclick = () => deleteQuestion(category, question.points);
+                }
+                miniGrid.appendChild(cell);
+            });
+        }
+    }
+
+    function startGame() {
+        if (gameData.length === 0) {
+            alert('Tilføj mindst ét spørgsmål før du starter spillet');
+            return;
+        }
+
+        document.querySelector('.setup-container').style.display = 'none';
+        document.getElementById('gameContainer').style.display = 'block';
+        renderGameBoard();
+    }
+
+    function renderGameBoard() {
+        const grid = document.getElementById('gameGrid');
+        grid.innerHTML = '';
+        
+        const categories = [...new Set(gameData.map(c => c.category))];
+        grid.style.gridTemplateColumns = `repeat(${categories.length}, 1fr)`;
+
+        categories.forEach(category => {
+            const header = document.createElement('div');
+            header.className = 'card category-header';
+            header.textContent = category;
+            grid.appendChild(header);
+        });
+
+        for (let i = 0; i < 5; i++) {
+            categories.forEach((category, categoryIndex) => {
+                const questions = gameData.find(c => c.category === category)?.questions || [];
+                const question = questions[i];
+                if (question) {
+                    const cell = document.createElement('div');
+                    cell.className = 'card point-value';
+                    cell.textContent = question.points;
+                    cell.id = `cell-${categoryIndex}-${i}`;
+                    
+                    cell.onclick = () => showQuestion(category, question, cell);
+                    grid.appendChild(cell);
+                } else {
+                    const cell = document.createElement('div');
+                    cell.className = 'card';
+                    cell.textContent = '';
+                    grid.appendChild(cell);
+                }
+            });
+        }
+    }
+
+    function showQuestion(category, question, cell) {
+        const overlay = document.createElement('div');
+        overlay.className = 'question-overlay';
+        
+        const content = document.createElement('div');
+        content.className = 'question-content';
+        content.innerHTML = `
+            <h2 style="margin-bottom: 1rem;">${question.question}</h2>
+            <button class="primary-btn" onclick="showAnswer(this)">Vis svar</button>
+            <p style="margin-top: 1rem; font-size: 1.2rem; display: none;">${question.answer}</p>
+            <button class="secondary-btn" onclick="closeQuestion(this)" style="margin-top: 1rem;">Luk</button>
+        `;
+
+        overlay.appendChild(content);
+        document.body.appendChild(overlay);
+
+        // Gem en reference til den originale celle
+        overlay.dataset.cellId = cell.id;
+    }
+
+    function showAnswer(button) {
+        const answer = button.nextElementSibling;
+        answer.style.display = 'block';
+    }
+
+    function closeQuestion(button) {
+        const overlay = button.closest('.question-overlay');
+        const cellId = overlay.dataset.cellId;
+        const cell = document.getElementById(cellId);
+
+        if (cell) {
+            cell.classList.add('disabled');
+            cell.onclick = null;
+        }
+
+        overlay.remove();
+    }
+
+    function addTeam() {
+        const teamPanel = document.getElementById('teamPanel');
+        const team = {
+            id: teamCounter++,
+            name: `Hold ${teamCounter - 1}`,
+            score: 0
+        };
+        teams.push(team);
+
+        const teamDiv = document.createElement('div');
+        teamDiv.className = 'team';
+        teamDiv.innerHTML = `
+            <div class="team-name">${team.name}</div>
+            <div class="score-controls">
+                <select class="score-input">
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                    <option value="300">300</option>
+                    <option value="400">400</option>
+                    <option value="500">500</option>
+                </select>
+                <button class="primary-btn" onclick="addScore(${team.id})">+</button>
+                <div class="score">${team.score}</div>
+                <button class="secondary-btn" onclick="subtractScore(${team.id})">-</button>
+                <select class="score-input">
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                    <option value="300">300</option>
+                    <option value="400">400</option>
+                    <option value="500">500</option>
+                </select>
+            </div>
+        `;
+
+        teamPanel.appendChild(teamDiv);
+    }
+
+    function removeTeam() {
+        if (teams.length > 0) {
+            teams.pop();
+            const teamPanel = document.getElementById('teamPanel');
+            teamPanel.removeChild(teamPanel.lastChild);
+            teamCounter--;
+        }
+    }
+
+    function addScore(teamId) {
+        const team = teams.find(t => t.id === teamId);
+        const scoreInput = document.querySelector(`#teamPanel .team:nth-child(${teamId}) .score-controls select`);
+        const points = parseInt(scoreInput.value);
+        team.score += points;
+        updateScoreDisplay(teamId);
+    }
+
+    function subtractScore(teamId) {
+        const team = teams.find(t => t.id === teamId);
+        const scoreInput = document.querySelector(`#teamPanel .team:nth-child(${teamId}) .score-controls select:last-child`);
+        const points = parseInt(scoreInput.value);
+        team.score -= points;
+        updateScoreDisplay(teamId);
+    }
+
+    function updateScoreDisplay(teamId) {
+        const team = teams.find(t => t.id === teamId);
+        const scoreDisplay = document.querySelector(`#teamPanel .team:nth-child(${teamId}) .score`);
+        scoreDisplay.textContent = team.score;
+    }
+</script>
+</body>
+</html>
+
