@@ -10,62 +10,108 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-
         .container {
             text-align: center;
             padding: 40px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            width: 90%;
         }
-
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
         button {
-            background-color: #4285f4; /* Google Blue */
+            background: linear-gradient(145deg, #3b82f6, #2563eb);
             color: white;
-            padding: 15px 30px;
+            padding: 15px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin: 10px; /* Tilføjet margin for at adskille knapperne */
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
         }
-
         button:hover {
-            background-color: #3c78d8;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+            background: linear-gradient(145deg, #4f88f7, #1e56f0);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        .home-button {
+            background: linear-gradient(145deg, #e73c7e, #cc2366);
+            padding: 16px 30px;
+            margin-top: 20px;
+            font-weight: 600;
+            font-size: 17px;
+            border-radius: 30px;
+            width: 60%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .home-button:hover {
+            background: linear-gradient(145deg, #f04b8e, #d92974);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 28px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <button onclick="openMeeting()">Mødehjælp</button>
-        <button onclick="openReader()">Oplæser</button>
-        <button onclick="openPodcast()">Podcast-generator</button>
-        <button onclick="openProduktivitet()">Produktivitetshjælper</button>
-        <button onclick="openForside()">Tilbage til Forside</button>
+        <h1>Værktøjsmenu</h1>
+        <div class="button-grid">
+            <button onclick="openMeeting()">Mødehjælp</button>
+            <button onclick="openReader()">Oplæser</button>
+            <button onclick="openPodcast()">Podcast-generator</button>
+            <button onclick="openProduktivitet()">Produktivitetshjælper</button>
+            <button onclick="openJeopardy()">Jeopardy</button>
+            <button onclick="openMillionaer()">Hvem vil være millionær</button>
+            <button onclick="openQuiz()">Quiz-generator</button>
+            <button onclick="openMaterialehjaelp()">Undervisningssekvenser</button>
+        </div>
+        <button onclick="openForside()" class="home-button">Tilbage til Forside</button>
     </div>
-
     <script>
         function openMeeting() {
             window.location.href = 'Meeting.html';
         }
-
         function openReader() {
             window.location.href = 'Reader.html';
         }
-
         function openPodcast() {
             window.location.href = 'Podcast.html';
         }
-
         function openProduktivitet() {
             window.location.href = 'Produktivitet.html';
         }
-
+        function openJeopardy() {
+            window.location.href = 'Jeopardy.html';
+        }
+        function openMillionaer() {
+            window.location.href = 'Millionær.html';
+        }
+        function openQuiz() {
+            window.location.href = 'Quiz.html';
+        }
+        function openMaterialehjaelp() {
+            window.location.href = 'Materialehjælp.html';
+        }
         function openForside() {
-            window.location.href = 'Index.html';
+            window.location.href = 'Forside.html';
         }
     </script>
 </body>
