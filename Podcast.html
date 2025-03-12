@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcast Builder</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #f3f3f3; color: #333; }
+        .container { width: 80%; margin: auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); }
+        .box { border: 1px solid #ccc; padding: 15px; margin: 10px; display: flex; align-items: flex-start; justify-content: space-between; background: #fafafa; border-radius: 5px; transition: 0.3s; }
+        .box:hover { background: #eaeaea; }
+        .question-box { background: #e6f2ff; border-left: 4px solid #0078d4; } /* Blå for spørgsmål */
+        .question-box:hover { background: #d9e9ff; }
+        .answer-box { background: #e6ffe6; border-left: 4px solid #28a745; } /* Grøn for svar */
+        .answer-box:hover { background: #d9ffd9; }
+        .controls { margin-bottom: 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; }
+        .recording-status { color: #d9534f; font-weight: bold; }
+        select, button, textarea { margin: 5px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        textarea { min-height: 80px; min-width: 300px; resize: vertical; flex-grow: 1; margin-right: 10px; }
+        button { background: #0078d4; color: white; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #005a9e; }
+        #recordButton { background: #28a745; }
+        #recordButton:hover { background: #218838; }
+        .delete-button { background: #dc3545; }
+        .delete-button:hover { background: #c82333; }
+        .audio-container { margin-top: 20px; }
+        .info-box { 
+            background-color: #e7f3ff; 
+            border-left: 4px solid #0078d4; 
+            padding: 10px; 
+            margin: 15px 0; 
+            border-radius: 4px; 
+            text-align: left;
+        }
+        .box-controls {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+        .move-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .move-button {
+            padding: 5px 10px;
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            width: 48%;
+        }
+        .move-button:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Podcast Builder</h1>
+    <div class="container">
+        <div class="info-box">
+            <p><strong>Bemærk:</strong> For at optage computerlyden skal du:</p>
+            <ol>
+                <li>Klikke på "Del skærm" når du bliver bedt om det</li>
+                <li>Vælge fanen "System Audio" (Chrome) eller "Entire Screen" og markér "Share audio" (Firefox)</li>
+                <li>Klikke på "Del" for at starte optagelsen</li>
+            </ol>
+        </div>
+        
+        <div class="controls">
+            <select id="languageSelector" onchange="updateVoiceOptions()">
+                <option value="all">Alle sprog</option>
+                <!-- Vil blive udfyldt med JavaScript -->
+            </select>
+            <button onclick="addBox('question')">➕ Tilføj Spørgsmål</button>
+            <button onclick="addBox('answer')">➕ Tilføj Svar</button>
+            <button id="recordButton" onclick="toggleRecording()">🎙 Start Optagelse</button>
+            <button onclick="startAIPodcast()">▶️ Start AI-Podcast</button>
+            <p id="status" class="recording-status"></p>
+        </div>
+        <div id="workspace"></div>
+        
+        <div class="audio-container" id="recordings"></div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let voices = [];
+        let isRecording = false;
+        let audioContext;
+        let combinedStream;
+        let selectedLanguage = "all";
+        let languageMap = {};
+
+        function loadVoices() {
+            voices = speechSynthesis.getVoices();
+            
+            // Opbyg sprog-map og opdater sprog-dropdown
+            languageMap = {};
+            const languageSelector = document.getElementById('languageSelector');
+            
+            // Ryd eksisterende muligheder, men behold "Alle sprog"
+            while (languageSelector.options.length > 1) {
+                languageSelector.remove(1);
+            }
+            
+            // Tilføj sprog til dropdown og byg sprog-map
+            voices.forEach(voice => {
+                const lang = voice.lang;
+                if (!languageMap[lang]) {
+                    languageMap[lang] = [];
+                    
+                    // Tilføj sprog til dropdown
+                    const option = document.createElement('option');
+                    option.value = lang;
+                    option.textContent = `${lang} - ${getLanguageName(lang)}`;
+                    languageSelector.appendChild(option);
+                }
+                languageMap[lang].push(voice);
+            });
+        }
+
+        function getLanguageName(langCode) {
+            try {
+                return new Intl.DisplayNames(['da'], { type: 'language' }).of(langCode);
+            } catch (e) {
+                return langCode;
+            }
+        }
+
+        function updateVoiceOptions() {
+            selectedLanguage = document.getElementById('languageSelector').value;
+            
+            // Opdater eksisterende bokse
+            const boxes = document.querySelectorAll('.box');
+            boxes.forEach(box => {
+                const select = box.querySelector('select');
+                if (select) {
+                    const selectedVoice = select.value;
+                    populateVoiceSelect(select);
+                    
+                    // Prøv at beholde den valgte stemme hvis den stadig er tilgængelig
+                    if (Array.from(select.options).some(option => option.value === selectedVoice)) {
+                        select.value = selectedVoice;
+                    }
+                }
+            });
+        }
+
+        function populateVoiceSelect(select) {
+            // Gem den nuværende valgte stemme
+            const selectedVoice = select.value;
+            
+            // Ryd eksisterende muligheder
+            select.innerHTML = '';
+            
+            // Filtrer stemmer baseret på det valgte sprog
+            let filteredVoices = voices;
+            if (selectedLanguage !== "all") {
+                filteredVoices = languageMap[selectedLanguage] || [];
+            }
+            
+            // Tilføj stemmer til select
+            filteredVoices.forEach(voice => {
+                let option = document.createElement("option");
+                option.value = voice.name;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                select.appendChild(option);
+            });
+            
+            // Prøv at gendanne den tidligere valgte stemme
+            if (selectedVoice && Array.from(select.options).some(option => option.value === selectedVoice)) {
+                select.value = selectedVoice;
+            }
+        }
+
+        function moveBox(box, direction) {
+            const workspace = document.getElementById("workspace");
+            const boxes = Array.from(workspace.children);
+            const index = boxes.indexOf(box);
+            
+            if (direction === 'up' && index > 0) {
+                workspace.insertBefore(box, boxes[index - 1]);
+            } else if (direction === 'down' && index < boxes.length - 1) {
+                workspace.insertBefore(box, boxes[index + 1].nextSibling);
+            }
+        }
+
+        function addBox(type) {
+            let box = document.createElement("div");
+            box.className = "box";
+            
+            // Tilføj klasse baseret på type
+            if (type === 'question') {
+                box.classList.add('question-box');
+            } else {
+                box.classList.add('answer-box');
+            }
+
+            let textarea = document.createElement("textarea");
+            textarea.placeholder = type === 'question' ? 'Skriv dit spørgsmål' : 'Skriv svaret';
+
+            let controlsDiv = document.createElement("div");
+            controlsDiv.className = "box-controls";
+
+            // Tilføj op/ned knapper
+            let moveButtonsDiv = document.createElement("div");
+            moveButtonsDiv.className = "move-buttons";
+            
+            let upButton = document.createElement("button");
+            upButton.className = "move-button";
+            upButton.textContent = "↑ Op";
+            upButton.onclick = (e) => {
+                e.preventDefault();
+                moveBox(box, 'up');
+            };
+            
+            let downButton = document.createElement("button");
+            downButton.className = "move-button";
+            downButton.textContent = "↓ Ned";
+            downButton.onclick = (e) => {
+                e.preventDefault();
+                moveBox(box, 'down');
+            };
+            
+            moveButtonsDiv.appendChild(upButton);
+            moveButtonsDiv.appendChild(downButton);
+            controlsDiv.appendChild(moveButtonsDiv);
+
+            let select = document.createElement("select");
+            populateVoiceSelect(select);
+
+            controlsDiv.appendChild(select);
+
+            if (type === 'answer') {
+                let playBtn = document.createElement("button");
+                playBtn.textContent = "🔊 Afspil";
+                playBtn.onclick = () => speak(textarea.value, select.value);
+                controlsDiv.appendChild(playBtn);
+            }
+
+            let deleteBtn = document.createElement("button");
+            deleteBtn.className = "delete-button";
+            deleteBtn.textContent = "🗑️ Slet";
+            deleteBtn.onclick = () => box.remove();
+            controlsDiv.appendChild(deleteBtn);
+
+            box.appendChild(textarea);
+            box.appendChild(controlsDiv);
+
+            document.getElementById("workspace").appendChild(box);
+        }
+
+        function speak(text, voiceName) {
+            let utterance = new SpeechSynthesisUtterance(text);
+            let voice = voices.find(v => v.name === voiceName);
+            if (voice) utterance.voice = voice;
+            speechSynthesis.speak(utterance);
+        }
+
+        async function setupRecording() {
+            try {
+                // Request both microphone and display media (for system audio)
+                const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // Request screen capture with audio
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: true
+                });
+                
+                // Create audio context
+                audioContext = new AudioContext();
+                
+                // Create sources for both streams
+                const micSource = audioContext.createMediaStreamSource(micStream);
+                
+                // Get audio tracks from display stream
+                const displayAudioTracks = displayStream.getAudioTracks();
+                
+                // Create a destination for the combined audio
+                const destination = audioContext.createMediaStreamDestination();
+                
+                // Connect microphone to destination
+                micSource.connect(destination);
+                
+                // If we have system audio, add it to the mix
+                if (displayAudioTracks.length > 0) {
+                    const displaySource = audioContext.createMediaStreamSource(
+                        new MediaStream([displayAudioTracks[0]])
+                    );
+                    displaySource.connect(destination);
+                }
+                
+                // Create a combined stream with audio from both sources
+                combinedStream = destination.stream;
+                
+                // Create media recorder with the combined stream
+                mediaRecorder = new MediaRecorder(combinedStream);
+                mediaRecorder.ondataavailable = event => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
+                return true;
+            } catch (error) {
+                console.error("Fejl ved opsætning af optagelse:", error);
+                document.getElementById("status").innerText = "❌ Fejl: " + error.message;
+                return false;
+            }
+        }
+
+        async function toggleRecording() {
+            const recordButton = document.getElementById('recordButton');
+            const statusElement = document.getElementById("status");
+            
+            if (!isRecording) {
+                statusElement.innerText = "⏳ Forbereder optagelse...";
+                
+                const success = await setupRecording();
+                if (!success) return;
+                
+                audioChunks = [];
+                mediaRecorder.start();
+                
+                recordButton.textContent = "⏹ Stop Optagelse";
+                recordButton.style.backgroundColor = '#dc3545';
+                statusElement.innerText = "🔴 Optager mikrofon og computerlyd...";
+                isRecording = true;
+            } else {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    mediaRecorder.onstop = createAudioElement;
+                    
+                    recordButton.textContent = "🎙 Start Optagelse";
+                    recordButton.style.backgroundColor = '#28a745';
+                    statusElement.innerText = "✅ Optagelse færdig";
+                    isRecording = false;
+                }
+            }
+        }
+
+        function createAudioElement() {
+            const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            const audioContainer = document.createElement('div');
+            audioContainer.style.margin = '10px 0';
+            audioContainer.style.padding = '10px';
+            audioContainer.style.backgroundColor = '#f9f9f9';
+            audioContainer.style.borderRadius = '5px';
+            
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.src = audioUrl;
+            audio.style.width = '100%';
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = audioUrl;
+            downloadLink.download = `podcast-${new Date().toISOString()}.webm`;
+            downloadLink.textContent = '💾 Download optagelse';
+            downloadLink.style.display = 'inline-block';
+            downloadLink.style.margin = '10px 0';
+            downloadLink.style.padding = '8px 15px';
+            downloadLink.style.backgroundColor = '#0078d4';
+            downloadLink.style.color = 'white';
+            downloadLink.style.borderRadius = '4px';
+            downloadLink.style.textDecoration = 'none';
+            
+            audioContainer.appendChild(audio);
+            audioContainer.appendChild(document.createElement('br'));
+            audioContainer.appendChild(downloadLink);
+            
+            document.getElementById('recordings').prepend(audioContainer);
+            
+            audioChunks = [];
+        }
+
+        async function startAIPodcast() {
+            const statusElement = document.getElementById("status");
+            statusElement.innerText = "⏳ Forbereder AI-podcast...";
+            
+            const success = await setupRecording();
+            if (!success) return;
+            
+            audioChunks = [];
+            mediaRecorder.start();
+            statusElement.innerText = "🔴 Optager AI-podcast...";
+
+            let boxes = document.querySelectorAll('.box');
+            for (let box of boxes) {
+                let textarea = box.querySelector('textarea');
+                let select = box.querySelector('select');
+                if (textarea && select && textarea.value.trim() !== '') {
+                    await new Promise(resolve => {
+                        let utterance = new SpeechSynthesisUtterance(textarea.value);
+                        let voice = voices.find(v => v.name === select.value);
+                        if (voice) utterance.voice = voice;
+                        utterance.onend = () => {
+                            setTimeout(resolve, 100); // Pause på 0,1 sekunder
+                        };
+                        speechSynthesis.speak(utterance);
+                    });
+                }
+            }
+
+            // Lille pause før vi stopper optagelsen
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.onstop = () => {
+                    createAudioElement();
+                    statusElement.innerText = "✅ AI-podcast færdig";
+                };
+            }
+        }
+
+        // Initialiser
+        speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices(); // Load voices initially
+    </script>
+</body>
+</html>

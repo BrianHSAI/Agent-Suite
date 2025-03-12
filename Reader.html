@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="da">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tekstoplæser med sprogvalg</title>
+        <style>
+            /* Global Styles */
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: #F4F6F9;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                text-align: center;
+                color: #333;
+                flex-direction: column;
+            }
+
+            .container {
+                background: #fff;
+                border-radius: 20px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                padding: 40px;
+                width: 90%;
+                max-width: 500px;
+                transition: all 0.3s ease;
+            }
+
+            h1 {
+                color: #1A73E8;
+                font-size: 2.4rem;
+                margin-bottom: 20px;
+                font-weight: 600;
+            }
+
+            label {
+                display: block;
+                font-size: 1.1rem;
+                color: #555;
+                margin-bottom: 10px;
+                font-weight: 500;
+            }
+
+            select, textarea {
+                width: 100%;
+                padding: 15px;
+                margin: 10px 0 20px;
+                border-radius: 8px;
+                border: 1px solid #DADCE0;
+                background-color: #F8F9FA;
+                font-size: 1rem;
+                font-weight: 400;
+                transition: all 0.2s ease;
+            }
+
+            select:focus, textarea:focus {
+                background-color: #E8F0FE;
+                border-color: #1A73E8;
+                outline: none;
+            }
+
+            textarea {
+                height: 150px;
+                resize: none;
+            }
+
+            button {
+                background-color: #1A73E8;
+                color: white;
+                border: none;
+                padding: 15px 35px;
+                border-radius: 30px;
+                font-size: 1.2rem;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.3s ease;
+            }
+
+            button:hover {
+                background-color: #1558B2;
+                transform: scale(1.05);
+            }
+
+            button:active {
+                transform: scale(0.98);
+            }
+
+            .footer {
+                margin-top: 30px;
+                font-size: 0.9rem;
+                color: #777;
+            }
+
+            .contact-info {
+                position: fixed;
+                bottom: 20px;
+                width: 100%;
+                text-align: center;
+                font-size: 1rem;
+                color: #888;
+            }
+
+            .contact-info a {
+                color: #1A73E8;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+            .contact-info a:hover {
+                text-decoration: underline;
+            }
+
+            /* Responsive Design */
+            @media (max-width: 600px) {
+                .container {
+                    padding: 25px;
+                }
+
+                h1 {
+                    font-size: 2rem;
+                }
+
+                button {
+                    padding: 12px 30px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+
+        <div class="container">
+            <h1>Tekstoplæser</h1>
+            
+            <label for="languageSelect">Vælg sprog:</label>
+            <select id="languageSelect">
+                <option value="da-DK">Dansk</option>
+		<option value="en-US">Engelsk</option>
+		<option value="de-DE">Tysk</option>
+		<option value="fr-FR">Fransk</option>
+		<option value="es-ES">Spansk</option>
+		<option value="it-IT">Italiensk</option>
+		<option value="nl-NL">Hollandsk</option>
+		<option value="pt-PT">Portugisisk</option>
+		<option value="ru-RU">Russisk</option>
+		<option value="zh-CN">Kinesisk (forenklet)</option>
+		<option value="bs-BA">Bosnisk</option>
+		<option value="hr-HR">Kroatisk</option>
+		<option value="cs-CZ">Tjekkisk</option>
+		<option value="hu-HU">Ungarsk</option>
+		<option value="pl-PL">Polsk</option>
+		<option value="ro-RO">Rumænsk</option>
+		<option value="sk-SK">Slovakisk</option>
+		<option value="sl-SI">Slovensk</option>
+		<option value="sv-SE">Svensk</option>
+		<option value="fi-FI">Finsk</option>
+		<option value="no-NO">Norsk</option>
+		<option value="el-GR">Græsk</option>
+            </select>
+
+            <div class="textarea-container">
+                <textarea id="textInput" placeholder="Skriv din tekst her..."></textarea>
+            </div>
+
+            <button onclick="readText()">Læs teksten</button>
+            <button onclick="stopReading()">Stop Læsning</button>
+
+            <div class="footer">
+                <p>Vælg et sprog, og lad mig læse det højt for dig!</p>
+            </div>
+        </div>
+
+        <div class="contact-info">
+            <p>Lavet af: <strong>BrianHS</strong> - <a href="mailto:kontakt@brianhs.dk">kontakt@brianhs.dk</a></p>
+        </div>
+
+        <script>
+            let utterance; // Declare utterance variable globally
+
+            function readText() {
+                const text = document.getElementById("textInput").value;
+                const language = document.getElementById("languageSelect").value;
+                utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = language;
+                window.speechSynthesis.speak(utterance);
+            }
+
+            function stopReading() {
+                window.speechSynthesis.cancel();
+            }
+        </script>
+
+    </body>
+</html>

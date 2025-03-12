@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produktivitets Booster</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        #setup {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        #workspace {
+            display: none;
+            width: 80%;
+            height: 80%;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            position: relative;
+        }
+        #content-area {
+            display: flex;
+            height: 90%;
+        }
+        #textarea {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 1rem;
+            resize: none;
+        }
+        #reference-text {
+            display: none;
+            width: 50%;
+            height: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 1rem;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        #timer {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 1.2em;
+            color: #555;
+            display: none;
+        }
+        button {
+            background-color: #0078d7;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="setup">
+        <h1>Produktivitets Booster</h1>
+        <label for="time">Hvor mange minutter vil du arbejde?</label><br>
+        <input type="number" id="time" min="1" required><br><br>
+
+        <label for="showTimer">Vil du se timeren?</label><br>
+        <input type="checkbox" id="showTimer"><br><br>
+
+        <label for="fontSelect">Vælg skrifttype:</label><br>
+        <select id="fontSelect">
+            <option value="Arial">Arial</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Verdana">Verdana</option>
+        </select><br><br>
+
+        <label for="referenceText">Indsæt referencetekst (valgfrit):</label><br>
+        <textarea id="referenceText" rows="5" cols="50"></textarea><br><br>
+
+        <button id="startButton">Gør mig mere produktiv</button>
+    </div>
+
+    <div id="workspace">
+        <div id="content-area">
+            <textarea id="textarea" placeholder="Skriv her..."></textarea>
+            <div id="reference-text"></div>
+        </div>
+        <div id="timer"></div>
+        <button id="saveButton" disabled>Gem til Word</button>
+        <button id="toggleReferenceButton" disabled>Vis/Skjul Reference</button>
+    </div>
+
+    <footer>
+        Lavet af: BrianHS - kontakt@brianhs.dk
+    </footer>
+
+    <script>
+        let timer;
+        let timeLeft;
+        let referenceVisible = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const referenceTextInput = document.getElementById('referenceText');
+            const toggleReferenceButton = document.getElementById('toggleReferenceButton');
+
+            toggleReferenceButton.disabled = true;
+
+            referenceTextInput.addEventListener('input', function() {
+                toggleReferenceButton.disabled = !referenceTextInput.value.trim();
+            });
+
+            document.getElementById('startButton').addEventListener('click', startSession);
+            document.getElementById('saveButton').addEventListener('click', saveToWord);
+            toggleReferenceButton.addEventListener('click', toggleReference);
+
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+        });
+
+        function startSession() {
+            const timeInput = document.getElementById('time').value;
+            const showTimer = document.getElementById('showTimer').checked;
+            const referenceText = document.getElementById('referenceText').value;
+            const selectedFont = document.getElementById('fontSelect').value;
+
+            if (!timeInput || timeInput <= 0) {
+                alert('Angiv en gyldig tid!');
+                return;
+            }
+
+            timeLeft = timeInput * 60;
+
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('workspace').style.display = 'block';
+            document.getElementById('textarea').style.fontFamily = selectedFont;
+
+            if (referenceText) {
+                document.getElementById('reference-text').textContent = referenceText;
+            }
+
+            if (showTimer) {
+                document.getElementById('timer').style.display = 'block';
+                timer = setInterval(updateTimer, 1000);
+            }
+
+            // Åbn i fuldskærm
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else {
+                alert("Din browser understøtter muligvis ikke fuldskærmstilstand.");
+            }
+        }
+
+        function updateTimer() {
+            const timerDisplay = document.getElementById('timer');
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+
+            timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                timerDisplay.style.display = 'none';
+                document.getElementById('saveButton').disabled = false;
+            }
+
+            timeLeft--;
+        }
+
+        function saveToWord() {
+            const text = document.getElementById('textarea').value;
+            const font = document.getElementById('fontSelect').value;
+
+            const htmlContent = `
+            <html>
+            <head>
+            <meta charset="utf-8">
+            <style>body { font-family: "${font}"; }</style>
+            </head>
+            <body>${text.replace(/\n/g, '<br>')}</body>
+            </html>`;
+
+            const blob = new Blob([htmlContent], { type: 'application/msword' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Produktivitet.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function toggleReference() {
+            const textarea = document.getElementById('textarea');
+            const referenceText = document.getElementById('reference-text');
+            
+            if (referenceVisible) {
+                referenceText.style.display = 'none';
+                textarea.style.width = '100%';
+                referenceVisible = false;
+            } else {
+                referenceText.style.display = 'block';
+                textarea.style.width = '50%';
+                referenceVisible = true;
+            }
+        }
+
+        function handleFullscreenChange() {
+            if (!document.fullscreenElement) {
+                alert("Du forlod fuldskærm! Sletter al information.");
+                clearInterval(timer);
+                document.getElementById('workspace').style.display = 'none';
+                document.getElementById('setup').style.display = 'block';
+                document.getElementById('textarea').value = '';
+            }
+        }
+    </script>
+</body>
+</html>

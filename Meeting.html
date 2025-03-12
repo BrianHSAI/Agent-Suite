@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Møde-noter Hjælper</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8faff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .section {
+            flex: 1;
+            padding: 30px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .left {
+            background-color: #f3f4f6;
+        }
+        .right {
+            background-color: #e9d5ff;
+        }
+        .microphone {
+            width: 300px;
+            height: 300px;
+            border: 6px solid #4a4ee8;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color 0.3s, color 0.3s;
+            font-size: 120px;
+            color: #4a4ee8;
+        }
+        .microphone.recording {
+            border-color: #28a745;
+            color: #28a745;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        .buttons, .options {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 100%;
+        }
+        .options label {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .options input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        button {
+            background-color: #ff7f50;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 15px 30px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s, transform 0.3s;
+            margin-top: 10px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #e67300;
+            transform: translateY(-2px);
+        }
+        button i {
+            margin-right: 8px;
+        }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        textarea {
+            resize: vertical;
+        }
+        /* Dropdown styles */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            width: 100%;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s;
+        }
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .show {
+            display: block;
+        }
+        .highlight {
+            background-color: yellow;
+        }
+        .highlighted-text {
+            margin-top: 10px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #fff;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section left">
+            <div class="microphone" id="microphone" onclick="toggleRecording()">
+                <i class="fas fa-microphone"></i>
+            </div>
+            <div class="buttons" id="recording-buttons" style="display: none;">
+                <button onclick="downloadAudio()"><i class="fas fa-download"></i> Download Lydfil</button>
+                <button onclick="window.open('https://turboscribe.ai/da/dashboard', '_blank')"><i class="fas fa-link"></i> Åbn TurboScribe</button>
+            </div>
+        </div>
+        <div class="section right">
+            <textarea id="transcript" placeholder="Indsæt transskriberet tekst her..." rows="10"></textarea>
+            <div id="highlighted-text" class="highlighted-text"></div>
+            <input type="text" id="search" placeholder="Søg i transskriptionen" oninput="searchTranscript()">
+            <div class="options">
+                <label><input type="checkbox" value="Lav resume"> Lav resume</label>
+                <label><input type="checkbox" value="Opsaml i punktform"> Opsaml i punktform</label>
+                <label><input type="checkbox" value="Fremhæv væsentligste aftaler"> Fremhæv væsentligste aftaler</label>
+                <label><input type="checkbox" value="Andet" onclick="toggleOther()"> Andet</label>
+                <input type="text" id="other-option" placeholder="Beskriv din opgave..." style="display: none;">
+            </div>
+            <input type="text" id="language" placeholder="Indtast sprog...">
+            <button onclick="generateTask()"><i class="fas fa-tasks"></i> Generer Opgave <i class="fas fa-copy" style="margin-left: 5px;"></i></button>
+
+            <div class="dropdown">
+                <button onclick="toggleDropdown()"><i class="fas fa-comments"></i> Vælg chatbot</button>
+                <div id="chatbotDropdown" class="dropdown-content">
+                    <a href="https://chat.mistral.ai/" target="_blank"><i class="fas fa-comments"></i> Åbn Mistral Chat</a>
+                    <a href="https://chat.openai.com/" target="_blank"><i class="fas fa-comments"></i> Åbn ChatGPT</a>
+                    <a href="https://claude.ai/" target="_blank"><i class="fas fa-comments"></i> Åbn Claude</a>
+                    <a href="https://chat.deepseek.com/" target="_blank"><i class="fas fa-comments"></i> Åbn Deepseek</a>
+                    <a href="https://copilot.microsoft.com/" target="_blank"><i class="fas fa-comments"></i> Åbn Copilot</a>
+                    <a href="https://gemini.google.com/" target="_blank"><i class="fas fa-comments"></i> Åbn Gemini</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+
+        function toggleRecording() {
+            const microphone = document.getElementById('microphone');
+            if (isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                microphone.classList.remove('recording');
+                document.getElementById('recording-buttons').style.display = 'block';
+            } else {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder.ondataavailable = event => {
+                            audioChunks.push(event.data);
+                        };
+                        mediaRecorder.onstop = () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                            const audioUrl = URL.createObjectURL(audioBlob);
+                            const audio = document.createElement('audio');
+                            audio.src = audioUrl;
+                            audio.controls = true;
+                            document.body.appendChild(audio);
+                            audioChunks = [];
+                        };
+                        mediaRecorder.start();
+                        isRecording = true;
+                        microphone.classList.add('recording');
+                    })
+                    .catch(err => {
+                        console.error('Error accessing microphone', err);
+                    });
+            }
+        }
+
+        function downloadAudio() {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const url = URL.createObjectURL(audioBlob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'recording.wav';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function searchTranscript() {
+            const searchText = document.getElementById('search').value.toLowerCase();
+            const transcriptElement = document.getElementById('transcript');
+            const transcriptText = transcriptElement.value.toLowerCase();
+            const searchRegex = new RegExp(`(${searchText})`, 'gi');
+
+            // Highlight matching text
+            const matches = transcriptText.match(searchRegex);
+            if (matches) {
+                let highlightedText = transcriptText.replace(searchRegex, '<mark class="highlight">$1</mark>');
+                document.getElementById('highlighted-text').innerHTML = highlightedText.replace(/\n/g, '<br>');
+            } else {
+                document.getElementById('highlighted-text').innerHTML = '';
+            }
+        }
+
+        function toggleOther() {
+            const otherOption = document.getElementById('other-option');
+            otherOption.style.display = otherOption.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleDropdown() {
+            document.getElementById('chatbotDropdown').classList.toggle('show');
+        }
+
+        function generateTask() {
+            // Placeholder for task generation logic
+            alert('Task generated!');
+        }
+
+        // Close the dropdown if the user clicks outside of it
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown button')) {
+                const dropdowns = document.getElementsByClassName('dropdown-content');
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
