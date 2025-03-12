@@ -19,19 +19,21 @@
             background: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
+            text-align: center;
         }
         h1 {
-            text-align: center;
             color: #0077cc;
         }
         h2 {
             color: #005fa3;
             border-bottom: 2px solid #0077cc;
             padding-bottom: 5px;
+            text-align: left;
         }
         ul {
             list-style: none;
             padding: 0;
+            text-align: left;
         }
         li {
             background: #eef;
@@ -48,11 +50,27 @@
             color: #0077cc;
             font-weight: bold;
         }
+        .back-button {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 15px 25px;
+            background-color: #ff5722;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .back-button:hover {
+            background-color: #e64a19;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>AI Redskaber</h1>
+        <a href="Index.html" class="back-button">Tilbage til forside</a>
         <h2>Chatbots</h2>
         <ul>
             <li><a href="https://copilot.microsoft.com">Copilot</a> - Microsofts chatbot, som fungerer rigtig godt i Edge-browseren.</li>
