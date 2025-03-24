@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Generator</title>
+  <style>
+    :root {
+      --background: #ffffff;
+      --foreground: #020817;
+      --card: #ffffff;
+      --card-foreground: #020817;
+      --primary: #0070f3;
+      --primary-foreground: #ffffff;
+      --secondary: #f7f7f7;
+      --secondary-foreground: #020817;
+      --muted: #f1f5f9;
+      --muted-foreground: #64748b;
+      --accent: #f1f5f9;
+      --accent-foreground: #020817;
+      --destructive: #ef4444;
+      --destructive-foreground: #f8fafc;
+      --border: #e2e8f0;
+      --input: #e2e8f0;
+      --ring: #0070f3;
+      --radius: 0.5rem;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 1.875rem;
+      font-weight: bold;
+    }
+
+    .grid {
+      display: grid;
+      gap: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      padding: 1.5rem 1.5rem 0;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--card-foreground);
+    }
+
+    .card-description {
+      color: var(--muted-foreground);
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-content {
+      padding: 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-footer {
+      padding: 1.5rem;
+      display: flex;
+      justify-content: flex-end;
+      border-top: 1px solid var(--border);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background-color: var(--background);
+      font-size: 0.875rem;
+      color: var(--foreground);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--ring);
+      box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    textarea.output {
+      min-height: 150px;
+      resize: none;
+      background-color: var(--secondary);
+      flex: 1;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 1rem;
+      background-color: var(--primary);
+      color: var(--primary-foreground);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      height: 40px;
+    }
+
+    button:hover {
+      background-color: #0051a8;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background-color: var(--foreground);
+      color: var(--background);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(1rem);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 1000;
+      max-width: 350px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast-title {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+
+    .icon {
+      margin-right: 0.5rem;
+      width: 16px;
+      height: 16px;
+    }
+
+    .space-y-4 > * + * {
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Prompt Generator</h1>
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Udfyld din prompt</h2>
+          <p class="card-description">
+            Udfyld felterne nedenfor for at generere den perfekte prompt til dine behov.
+          </p>
+        </div>
+        <div class="card-content space-y-4">
+          <div class="form-group">
+            <label for="profession">Profession</label>
+            <input 
+              type="text" 
+              id="profession" 
+              placeholder="F.eks. underviser, marketingchef, forfatter..."
+            >
+          </div>
+          <div class="form-group">
+            <label for="audience">Målgruppe</label>
+            <input 
+              type="text" 
+              id="audience" 
+              placeholder="F.eks. studerende, kunder, læsere..."
+            >
+          </div>
+          <div class="form-group">
+            <label for="product">Produktønske</label>
+            <textarea 
+              id="product" 
+              placeholder="F.eks. en artikel, en præsentation, en guide..."
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="language">Sprog</label>
+            <input 
+              type="text" 
+              id="language" 
+              placeholder="F.eks. dansk, engelsk, tysk..."
+            >
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Din genererede prompt</h2>
+          <p class="card-description">Kopier denne prompt og brug den i din foretrukne AI-assistent.</p>
+        </div>
+        <div class="card-content">
+          <textarea id="generatedPrompt" class="output" readonly></textarea>
+        </div>
+        <div class="card-footer">
+          <button id="copyButton">
+            <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Kopier prompt
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span class="toast-title">Kopieret!</span>
+    <span>Prompten er kopieret til udklipsholderen.</span>
+  </div>
+
+  <script>
+    // Get DOM elements
+    const professionInput = document.getElementById('profession');
+    const audienceInput = document.getElementById('audience');
+    const productInput = document.getElementById('product');
+    const languageInput = document.getElementById('language');
+    const generatedPromptTextarea = document.getElementById('generatedPrompt');
+    const copyButton = document.getElementById('copyButton');
+    const toast = document.getElementById('toast');
+
+    // Function to update the generated prompt
+    function updateGeneratedPrompt() {
+      const profession = professionInput.value || '[indsæt profession]';
+      const audience = audienceInput.value || '[indsæt målgruppe]';
+      const product = productInput.value || '[indsæt produktønske]';
+      const language = languageInput.value || '[indsæt sprog]';
+
+      const promptTemplate = `Du er min profesionelle og faglige assistent med ekspertise inden for netop mit område. Du skal hjælpe mig som ${profession} med at lave ${product} til ${audience}. Skriv på ${language}.`;
+      
+      generatedPromptTextarea.value = promptTemplate;
+    }
+
+    // Function to copy text to clipboard
+    function copyToClipboard() {
+      generatedPromptTextarea.select();
+      document.execCommand('copy');
+      
+      // Show toast notification
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+      
+      // Change button text temporarily
+      const originalButtonHTML = copyButton.innerHTML;
+      copyButton.innerHTML = `
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Kopieret!
+      `;
+      
+      setTimeout(() => {
+        copyButton.innerHTML = originalButtonHTML;
+      }, 2000);
+    }
+
+    // Add event listeners
+    professionInput.addEventListener('input', updateGeneratedPrompt);
+    audienceInput.addEventListener('input', updateGeneratedPrompt);
+    productInput.addEventListener('input', updateGeneratedPrompt);
+    languageInput.addEventListener('input', updateGeneratedPrompt);
+    copyButton.addEventListener('click', copyToClipboard);
+
+    // Initialize the prompt on page load
+    updateGeneratedPrompt();
+  </script>
+</body>
+</html>
