@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prøve Program</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background-color: #ecf0f1;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Inter', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        #forside, #prøveSide {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #forside {
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        #startButton {
+            padding: 15px 35px;
+            font-size: 18px;
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        #startButton:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        #prøveSide {
+            display: none;
+            flex-direction: column;
+        }
+
+        #menu {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #menu ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            margin: 0;
+        }
+
+        #menu li {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 4px;
+        }
+
+        #menu li:hover, #menu li.active {
+            background-color: var(--secondary-color);
+        }
+
+        #content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #opgaveContainer, #skrivefelt {
+            width: 50%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #opgaveContainer {
+            background-color: #f4f6f7;
+            overflow-y: auto;
+            border-right: 1px solid #d1d8e0;
+        }
+
+        #skrivefelt {
+            background-color: white;
+            position: relative;
+        }
+
+        #timer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 16px;
+            color: var(--text-color);
+            background-color: rgba(255,255,255,0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        #gemPDF {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 25px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        #gemPDF:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .ql-container {
+            height: 100%;
+            border: none !important;
+        }
+
+        .ql-toolbar {
+            border-bottom: 1px solid #e0e0e0 !important;
+        }
+
+        #opgaveFormulering {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            white-space: pre-line;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            margin-top: 20px;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+</head>
+<body>
+    <div id="forside">
+        <button id="startButton">Start Prøve</button>
+    </div>
+
+    <div id="prøveSide">
+        <div id="menu">
+            <ul>
+                <li class="opgave" data-opgave="1">Opgave 1</li>
+                <li class="opgave" data-opgave="2">Opgave 2</li>
+                <li class="opgave" data-opgave="3">Opgave 3</li>
+                <li class="opgave" data-opgave="4">Opgave 4</li>
+                <li class="opgave" data-opgave="5">Opgave 5</li>
+            </ul>
+        </div>
+        <div id="content">
+            <div id="opgaveContainer">
+                <div id="opgaveFormulering">
+                    <p id="opgaveTekst">Vælg en opgave fra menuen.</p>
+                </div>
+                <div id="videoContainer"></div>
+            </div>
+            <div id="skrivefelt">
+                <div id="editor"></div>
+            </div>
+        </div>
+        <div id="timer">Tid tilbage: 1 time</div>
+        <button id="gemPDF">Gem som PDF</button>
+    </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        let timer;
+        let timeLeft = 3600; // 1 time i sekunder
+        
+        const editor = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                clipboard: {
+                    matchVisual: false
+                }
+            }
+        });
+
+        // Forhindre indsættelse af uformateret tekst
+        editor.clipboard.addMatcher(Node.TEXT_NODE, (node, delta) => {
+            const regex = /^[\s\n]+$/;
+            if (regex.test(node.textContent)) {
+                return delta;
+            }
+            return new delta().insert(node.textContent.trim());
+        });
+
+        // Tilføj mulighed for at overføre markeret tekst
+        document.getElementById('opgaveFormulering').addEventListener('mouseup', function() {
+            const selectedText = window.getSelection().toString().trim();
+            if (selectedText) {
+                // Indsæt teksten direkte uden bekræftelse
+                editor.insertText(editor.getLength() - 1, selectedText);
+            }
+        });
+
+        document.getElementById('startButton').addEventListener('click', function() {
+            document.getElementById('forside').style.display = 'none';
+            document.getElementById('prøveSide').style.display = 'flex';
+            document.getElementById('gemPDF').style.display = 'block';
+            startTimer();
+            // Fjernet openFullscreen() for at løse problem 1
+        });
+
+        document.querySelectorAll('.opgave').forEach(function(opgave) {
+            opgave.addEventListener('click', function() {
+                // Fjern 'active' class fra alle opgaver
+                document.querySelectorAll('.opgave').forEach(op => op.classList.remove('active'));
+                
+                // Tilføj 'active' class til den valgte opgave
+                opgave.classList.add('active');
+
+                var opgaveNummer = opgave.getAttribute('data-opgave');
+                document.getElementById('opgaveTekst').innerHTML = getOpgaveTekst(opgaveNummer);
+
+                // Indlejr YouTube-videoer eller billeder baseret på opgave
+                const videoContainer = document.getElementById('videoContainer');
+                videoContainer.innerHTML = ''; // Ryd tidligere indhold
+                
+                if (opgaveNummer === '2') {
+                    // Tilføj YouTube-video for opgave 2
+                    videoContainer.innerHTML = `
+                        <div class="video-container">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/jm2ekl2agyM" 
+                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; 
+                            gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>`;
+                } else if (opgaveNummer === '5') {
+                    // Tilføj det rigtige billede for opgave 5
+                    videoContainer.innerHTML = '<img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-5Z2qyT2BxJBVuUn5NWP52y5qw7ReB7.png" alt="Man reading newspaper on commute" style="max-width:100%; border-radius:8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">';
+                }
+            });
+        });
+
+        function getOpgaveTekst(opgaveNummer) {
+            switch(opgaveNummer) {
+                case '1':
+                    return `<strong>Opgave 1:</strong>
+ 
+Marker i nedenstående tekst alle verberne (udsagnsord) i præsens (nutid) – marker dem med fed 
+eller understregning: 
+
+The library is cool and smells like carpet cleaner, although all I can see is marble. I sign the Visitor's 
+Log: Clare Abshire, 11: 15 10 - 26 - 91 Special Collections. I have never been in the Newberry Library 
+before, and now that I have gotten past the dark, foreboding entrance I am excited. I have a sort of 
+Christmas - morning sense of the library as a big box full of beautiful books. The elevator is dimly lit, 
+almost silent. I stop on the third floor and fill out an application for a Reader's Card, then I go upstairs 
+to Special Collections. My boot heels rap the wooden floor. The room is quiet and crowded, full of 
+solid, heavy tables piled with books and surrounded by readers. Chicago autumn morning light shines 
+through the tall windows. I approach the desk and collect a stack of call slips. I am writing a paper for 
+an art history class. My research topic is the Kelmscott Press Chaucer. I look up the book itself and fill 
+out a call slip for it. 
+ 
+Omskriv verberne til præteritum (datid)`;
+
+                case '2':
+                    return `<strong>Opgave 2:</strong>
+
+Se nedenstående video, og skriv eksempler på følgende ordklasser i nedenstående lydklip: 
+
+4 adjektiver 
+4 pronominer 
+4 præpositioner 
+4 verber`;
+
+                case '3':
+                    return `<strong>Opgave 3:</strong>
+
+Omskriv præpositionsforbindelserne til adverbier
+ 
+Omskriv præpositionsforbindelser til adverbier som vist i eksemplet:
+
+<strong>Eksempel:</strong>
+He talked to me in a rather aggressive way. 
+He talked to me rather aggressively. 
+ 
+1) A lot of shopping decisions occur in an automatic manner.  
+2) The paintbrush strokes the canvas in a beautiful way. 
+3) We were treated in a very generous manner throughout the week. 
+4) The children were all talking in a loud way. 
+5) The ingredients are combined in a perfect way. 
+6) Transformation is not something that happens in a sudden way. 
+7) He is not really taking criticism in a good way.`;
+
+                case '4':
+                    return `<strong>Opgave 4:</strong>
+
+The sentences below, which are from two different texts, have been jumbled.
+
+Connect the sentences so that they form two meaningful texts.
+
+a. If you find yourself suddenly gaining access to a time machine, 
+b. – and all of it for free. 
+c. that most social scientists, policymakers, and community leaders usually bring up 
+d. then congratulations; you're a science-fiction character. 
+e. Libraries are not the kinds of institutions 
+f. what's the first thing you'd do? 
+g. a citizen, a permanent resident, or even a convicted felon 
+h. but the desire to kill Hitler clinches it. 
+i. when they discuss social capital and how to build it. 
+j. If you said "kill Adolf Hitler", 
+k. But they offer something for everyone, regardless of whether they're 
+l. Actually, the whole "access to a time machine" thing suggested that already,`;
+
+                case '5':
+                    return `<strong>Opgave 5:</strong>
+
+Write a text (50-75 words) to match the photo and include all the words from the list below. You are not 
+allowed to change the forms of the words.
+
+busy - news - commute - other - reading - daily - work`;
+
+                default:
+                    return `Vælg en opgave fra menuen.`;
+            }
+        }
+
+        function startTimer() {
+            timer = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const timerDisplay = document.getElementById('timer');
+            timerDisplay.innerText = `Tid tilbage: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            timerDisplay.style.color = timeLeft <= 600 ? 'red' : 'var(--text-color)';
+            timeLeft--;
+
+            if (timeLeft < 0) {
+                clearInterval(timer);
+                document.getElementById('gemPDF').style.display = 'block';
+                timerDisplay.innerText = 'Tid udløbet!';
+            }
+        }
+
+        function openFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.mozRequestFullScreen) { // Firefox
+                elem.mozRequestFullScreen();
+            } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { // IE/Edge
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Ryd tekst ved browserlukning
+        window.addEventListener('beforeunload', function(event) {
+            if (timeLeft >= 0) {
+                editor.setText('');
+            }
+        });
+
+        document.getElementById('gemPDF').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Løsning til problem 2: Konverter HTML til ren tekst
+            const editorContent = editor.getText(); // Henter ren tekst uden HTML-tags
+            
+            // Tilføj hovedindhold
+            doc.setFontSize(12);
+            doc.text(editorContent, 10, 10);
+            
+            // Tilføj vandmærke/fodnote med dato og tid
+            const now = new Date();
+            const dateTimeString = `Genereret: ${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK')}`;
+            
+            // Beregn sidens højde og placer fodnoten nederst
+            const pageHeight = doc.internal.pageSize.height;
+            
+            // Tilføj fodnote med mindre skriftstørrelse
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150); // Grå farve
+            doc.text(dateTimeString, 10, pageHeight - 10);
+            
+            doc.save('besvarelser.pdf');
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
+
