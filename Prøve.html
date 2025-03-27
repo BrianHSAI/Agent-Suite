@@ -322,6 +322,7 @@ html >
     overflow-y: auto;
     font-size: 14px;
     line-height: 1.6;
+    transition: all 0.3s ease;
 }
 
 .story-container h3 {
@@ -347,6 +348,41 @@ html >
 .toggle-story:hover {
     background-color: var(--primary-color);
 }
+
+.sub-menu {
+    display: none;
+    background-color: #f39c12;
+    padding: 10px;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    position: absolute;
+    z-index: 100;
+    width: 150px;
+}
+
+.sub-menu li {
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border-radius: 4px;
+    margin: 5px 0;
+    background-color: #e67e22;
+    color: white;
+    font-weight: bold;
+}
+
+.sub-menu li:hover {
+    background-color: #d35400;
+    color: white;
+}
+
+.footer {
+    position: absolute;
+    bottom: 20px;
+    color: white;
+    font-size: 14px;
+    opacity: 0.8;
+}
     </style>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
@@ -360,7 +396,8 @@ html >
             <button id="startButton">Start Prøve</button>
         </div>
         <div id="helpIcon">?</div>
-    </div>
+    <div class="footer">Lavet af: BrianHS - kontakt@brianhs.dk</div>
+</div>
 
     <div id="helpModal">
         <div class="modal-content">
@@ -393,9 +430,14 @@ html >
                 <li class="opgave" data-opgave="3">Opgave 3</li>
                 <li class="opgave" data-opgave="4">Opgave 4</li>
                 <li class="opgave" data-opgave="5">Opgave 5</li>
-                <li class="opgave" data-opgave="6">Opgave 6</li>
+                <li class="opgave" data-opgave="6" id="opgave6">Opgave 6</li>
             </ul>
         </div>
+        <ul class="sub-menu" id="opgave6SubMenu">
+            <li class="sub-opgave" data-opgave="6a">Opgave 6a</li>
+            <li class="sub-opgave" data-opgave="6b">Opgave 6b</li>
+            <li class="sub-opgave" data-opgave="6c">Opgave 6c</li>
+        </ul>
         <div id="content">
             <div id="opgaveContainer">
                 <div id="opgaveFormulering">
@@ -504,116 +546,157 @@ html >
             }
         });
 
-        document.querySelectorAll('.opgave').forEach(function(opgave) {
-            opgave.addEventListener('click', () => {
-                // Fjern 'active' class fra alle opgaver
-                document.querySelectorAll('.opgave').forEach(op => op.classList.remove('active'));
-
-                // Tilføj 'active' class til den valgte opgave
-                opgave.classList.add('active');
-
-                var opgaveNummer = opgave.getAttribute('data-opgave');
-                document.getElementById('opgaveTekst').innerHTML = getOpgaveTekst(opgaveNummer);
-
-                // Indlejr YouTube-videoer eller billeder baseret på opgave
-                const videoContainer = document.getElementById('videoContainer');
-                const storyContainer = document.getElementById('storyContainer');
-                
-                videoContainer.innerHTML = ''; // Ryd tidligere indhold
-                storyContainer.style.display = 'none'; // Hide story container by default
-
-                if (opgaveNummer === '2') {
-                    // Tilføj YouTube-video for opgave 2
-                    videoContainer.innerHTML = `
-                        <div class="video-container">
-                            <iframe width="560" height="315" src="https://www.youtube.com/embed/jm2ekl2agyM"
-                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media;
-                            gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        </div>`;
-                } else if (opgaveNummer === '5') {
-                    // Tilføj det rigtige billede for opgave 5
-                    videoContainer.innerHTML = '<img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-5Z2qyT2BxJBVuUn5NWP52y5qw7ReB7.png" alt="Man reading newspaper on commute" style="max-width:100%; border-radius:8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">';
-                } else if (opgaveNummer === '6') {
-                    // Show the story for opgave 6
-                    storyContainer.style.display = 'block';
-                    storyContainer.innerHTML = `
-                        <div class="story-container">
-                            <h3>The Gift by Karen Phillips</h3>
-                            <p>"Hi, Mum. Dad's getting married." Elly runs through the back door, swings herself up onto the bench.</p>
-                            <p>"Who brought you home?" I ask, buying time while I absorb this piece of news that Ron didn't think to mention when I spoke to him a couple of weeks ago.</p>
-                            <p>"Amelia. Dad's still milking. What'll you give them for a present?"</p>
-                            <p>"I don't know. When's the wedding?"</p>
-                            <p>"Soon, I think."</p>
-                            <p>"How many times have I asked you not to sit on the bench?"</p>
-                            <p>Elly slides down, turns her bubble gum over in her mouth. "So, what will you give them?"</p>
-                            <p>"I need to think about it." What's the etiquette regarding this? Does the ex-wife buy a present for the next wife?</p>
-                            <p>"Amelia's painted the back-door pink. It's her favourite colour."</p>
-                            <p>"Pink? What did Dad say about that?"</p>
-                            <p>"He likes it. Better than boring old brown."</p>
-                            <p>I remember the mud-tide that crept up the door as everyone kicked their gumboots off so that they collapsed at odd angles on the old wooden floorboards like wounded bodies on a battlefield.</p>
-                            <p>"Amelia's got this rack where we all put our boots."</p>
-                            <p>"Even Dad?"</p>
-                            <p>"Of course. Her gumboots are pink with black spots."</p>
-                            <p>"Pink's a nice, cheerful colour," I say in the non-judgemental voice recommended by experts when your child talks about the new woman in your ex-husband's life.</p>
-                            <p>"Dad and Amelia are going to Bali for their honeymoon."</p>
-                            <p>"Bali?" [...]</p>
-                            <p>She lifts the lid off the pot on the stove. "What's this? It looks disgusting."</p>
-                            <p>"Soup."</p>
-                            <p>"Amelia's cooking salmon for Dad tonight."</p>
-                            <p>"You should have stayed there for dinner then."</p>
-                            <p>Elly slams the lid back onto the pot. "Why are you so grumpy? I don't even like salmon."</p>
-                            <p>Elly told me that Ron met Amelia at the health food shop where his doctor sent him to buy something for the cracks on his hands – testimony to our cold, wet winters. Shortly afterwards, Elly reported that Amelia was growing flowers in my old vegetable garden. "All colours, Mum. You'd like them. She makes different creams with them."</p>
-                            <p>The farm's a hard taskmaster for someone on their own, but I didn't expect Ron to find my replacement quite so quickly, and somehow I thought he would choose a stronger, less tired version of me. Instead, he's chosen Amelia of the pink back door and expensive salmon dinners. Amelia who never goes near the milking shed, says Elly. No one warns you that divorce turns you into a spy. Quizzing the kids about the time they spent on the farm with their father was a no-no according to the "surviving divorce" books I was reading back then, but I mentally pounced on every fact they volunteered, storing it away for future use as a crocodile stores drowned prey under a muddy bank for a future meal. Soon after she moved under the covers of my old bed, I bumped into Amelia with Ron at the supermarket. I could see that Ron was uncomfortable with these two parts of his life almost colliding between the cereals and the jams. I don't know what I expected her to look like. I knew from Elly that Amelia was younger than I am, but I didn't expect the roundness, the bright scarf poured down her back or the scarlet boots. There was no resemblance to me at all. After a few muttered words about the road repairs in the main street, Ron dragged her away. I stood by myself in the aisle, consumed not with animosity towards her but curiosity about Ron and me. How can two people live together, create two beautiful children, but never really know one another? He's probably saying the same words to her that he did to me – words like love and forever. I'm not sure that I believe them anymore.</p>
-                            <p>We met at a party. Ron had come up to town for some forgotten reason, so tagged along with a cousin. The sense that he had of his own direction pulled me from my smorgasbord of university subjects like iron filings to a magnet. His parents helped us onto a dairy farm close to them. Even I, a city girl through and through, could appreciate that it was a beautiful piece of land resting in a cradle of bush-clad hills. We worked hard. Another man would have been content, but no matter how good the season was, Ron's dreams were always bigger than our income. The farm was a hole that could never be filled.</p>
-                            <p>"We'll lease a run-off for some extra dry stock next year," Ron said one evening after a day spent separating young calves from their mothers. [...]</p>
-                            <p>"I don't want a bigger farm. I want us to sell this one and move to town."</p>
-                            <p>"What would I do in town?" Ron asked.</p>
-                            <p>"Get a regular job with regular pay. I hate how we're always in debt."</p>
-                            <p>"It's the only way to grow."</p>
-                            <p>"And I'm tired of working in the shed."</p>
-                            <p>Ron walked out of the kitchen, slammed the door behind him.</p>
-                            <p>"I'll get a job and my wages can pay for a worker," I yelled at his departing back. I didn't see him again until I went to the milking shed next morning.</p>
-                            <p>"Can I come with you when the worker gets here?" Elly quietly sidled up to me in the kitchen when I ducked back from the shed to check that the kids were getting ready for school. She slipped her hand into mine and I knew that she had overheard us the night before. There was almost nothing on the farm that Ron and I between us couldn't repair, but neither of us knew how to mend the growing holes in our relationship. Our arguments were as corrosive as rust, silently eating away at both of us, but now dark bubbles had broken through the skin of our days.</p>
-                            <p>We dismantled our marriage as flood waters slid towards the road during my second winter as receptionist at our local vet clinic. It's a busy practice – each day brings different animals and their owners and salespeople. [...] Hours pass quickly, leaving no time for regrets and what ifs to enter my mind. With just Ron and me alone on the farm day after long day, I'd learned that marriage offers no guarantee against loneliness. When the flood waters drowned the road, a colleague offered me and the kids the flat under her house. By the time the water had receded, I knew that I would not go back to the farm.</p>
-                            <p>An unexpected calm fell after I'd made the decision not to return to the farm, as if we were fighters too exhausted to continue the war. When the noise died away we could hear each other's offers, not of reconciliation – we'd moved too far into hostile territory for that – but of compromise. There was no third party involved; the farm, although a silent tyrant, was exempt from all blame. Sometimes it felt as if we were actors and the script could change at any moment. It was hard to believe that what had begun in the fragrant warmth of summer in front of our old home was ending in an impersonal room and that I was the one ending it.</p>
-                            <p>In the lawyer's office, I often wanted to reach over to Ron and touch his hand. I wanted him to look at me with his crooked smile, raise an eyebrow and say, "Forget it. We can sort something out." In those moments I knew that I loved him more than I had for a long time. One evening he came around to the flat. I cooked dinner and we sat down to eat as a family, which we never did at the farm. Ron rarely finished before seven. After dinner, Ben and Elly went off to do their homework. Ron surfed through TV channels while I made us coffee. The kids kept finding reasons to come back into the lounge. I think they couldn't quite believe the tableau in front of them. I wanted to hold the moment, to say, "Can we talk?" But when he didn't find anything worth watching, Ron looked at the time then said, "Early bird catches the cows. I'm off." I watched his coffee grow cold.</p>
-                            <p>Guilt and relief combined to ensure that the divorce settlement was not in my favour. At times I hated Ron, but I also hated myself for what I had done. I had failed in the most important job – to make a happy home for my family. Ron was surly and the kids were miserable and it was my fault. Now months go by without Ron and me speaking, but I rang him two weeks ago to share my concern about Ben's plan to go mountain climbing over the summer holidays with what I argued was inadequate equipment.</p>
-                            <p>"He'll be fine," Ron said.</p>
-                            <p>"I want you to talk to him about it."</p>
-                            <p>"He knows my number," replied the man who would stay out on the farm all night with a sick cow in the days when I lived with him. I slammed the phone down but a few days later Ron rang back. Things were sorted with Ben. I was surprised that I'd forgotten how Ron shoves problems into some compartment in his brain until he's ready to think about them. I wanted to know exactly what equipment Ben was taking but I could hear Amelia saying something in the background. For the first time I didn't feel that she was an intruder in the house that I still owned.</p>
-                            <p>After our soup, Elly goes to her room to face her unopened homework. I ring Ben.</p>
-                            <p>"Did you know that Dad was getting married?" I ask.</p>
-                            <p>"Yep."</p>
-                            <p>"Why didn't you tell me?"</p>
-                            <p>"I thought you knew."</p>
-                            <p>"How do you feel about it?"</p>
-                            <p>"She's okay. A bit useless on the farm, but it'll be nice for Dad."</p>
-                            <p>A door slams in the background. Ben muffles the phone, blocks me out then comes back on.</p>
-                            <p>"Hey, Mum. We're just leaving. I'll ring you tomorrow night."</p>
-                            <p>I could choke on the number of words I've read about supporting children through their parents' divorce, but now, even in my worst moments when loneliness creeps in with the dark, I know that the kids are okay. Their scars are as faded as they ever will be.</p>
-                            <p>Amelia's interest in flowers reminds me of a painting hanging in our local art gallery. At a glance, it's simply an explosion of colour. Pinks and reds and yellows meld into shining dark blues and greens. My first impression was of a riot of blossom somewhere in the tropics, but from different angles or in a different light it could be a flotilla of nudibranchs in a southern ocean, or the deserts and mountains of the world as seen from a space shuttle. It's untitled so that viewers are left to interpret the shadows and shining ridges of colour for themselves. When I was at the farm I wanted to buy a piece of art to lighten the south-facing corner between the front door and our bedroom, but there were always things that we needed more – fencing wire, fertiliser, a new pump. The corner remained empty.</p>
-                            <p>Ron and I were not good for each other but without him there would be no Ben and Elly. I can't begin to imagine a life without them. Maybe if I'd hung in there we'd have reached a stage in life where we would go grocery shopping together or talk about holidays in Bali or perhaps Amelia has something that I lack [...]. I'll never know. [...] After school tomorrow I'll take Elly to look at it; although I think Amelia will like it, I no longer presume to know Ron's favourite colours. I'm not sure that I ever did.</p>
-                        </div>
-                    `;
-                }
-            });
-        });
-
-// Add event delegation for the toggle story button
-document.addEventListener('click', function(event) {
-    if (event.target && event.target.id === 'toggleStory') {
-        const storyContainer = document.getElementById('storyContainer');
-        storyVisible = !storyVisible;
+        // Handle main menu clicks
+document.querySelectorAll('.opgave').forEach(function(opgave) {
+    opgave.addEventListener('click', (event) => {
+        const opgaveId = opgave.getAttribute('data-opgave');
         
-        if (storyVisible) {
-            storyContainer.style.display = 'block';
-            event.target.textContent = 'Hide Story';
-        } else {
-            storyContainer.style.display = 'none';
-            event.target.textContent = 'Show Story';
+        // Special handling for Opgave 6
+        if (opgaveId === '6') {
+            // Toggle sub-menu visibility
+            const subMenu = document.getElementById('opgave6SubMenu');
+            subMenu.style.display = subMenu.style.display === 'block' ? 'none' : 'block';
+            
+            // Position the sub-menu below the parent menu item
+            const rect = opgave.getBoundingClientRect();
+            subMenu.style.top = `${rect.bottom}px`;
+            subMenu.style.left = `${rect.left}px`;
+            
+            // Prevent further processing
+            event.stopPropagation();
+            return;
         }
+        
+        // For other menu items, proceed as normal
+        handleOpgaveSelection(opgaveId);
+    });
+});
+
+// Handle sub-menu clicks
+document.querySelectorAll('.sub-opgave').forEach(function(subOpgave) {
+    subOpgave.addEventListener('click', (event) => {
+        const opgaveId = subOpgave.getAttribute('data-opgave');
+        handleOpgaveSelection(opgaveId);
+        
+        // Hide the sub-menu after selection
+        document.getElementById('opgave6SubMenu').style.display = 'none';
+        
+        // Prevent event from bubbling up
+        event.stopPropagation();
+    });
+});
+
+// Close sub-menu when clicking elsewhere
+document.addEventListener('click', function(event) {
+    const subMenu = document.getElementById('opgave6SubMenu');
+    if (subMenu.style.display === 'block' && !event.target.closest('#opgave6')) {
+        subMenu.style.display = 'none';
     }
 });
+
+// Function to handle opgave selection
+function handleOpgaveSelection(opgaveId) {
+    // Remove 'active' class from all opgaver
+    document.querySelectorAll('.opgave').forEach(op => op.classList.remove('active'));
+    document.querySelectorAll('.sub-opgave').forEach(op => op.classList.remove('active'));
+    
+    // Add 'active' class to the selected opgave or sub-opgave
+    if (opgaveId.length > 1) {
+        // It's a sub-opgave
+        document.querySelector(`[data-opgave="${opgaveId}"]`).classList.add('active');
+        // Also highlight the parent menu
+        document.getElementById('opgave6').classList.add('active');
+    } else {
+        // It's a main opgave
+        document.querySelector(`[data-opgave="${opgaveId}"]`).classList.add('active');
+    }
+    
+    // Update the opgave text
+    document.getElementById('opgaveTekst').innerHTML = getOpgaveTekst(opgaveId);
+    
+    // Handle media content
+    const videoContainer = document.getElementById('videoContainer');
+    const storyContainer = document.getElementById('storyContainer');
+    
+    videoContainer.innerHTML = ''; // Clear previous content
+    storyContainer.style.display = 'none'; // Hide story container by default
+    storyContainer.innerHTML = ''; // Clear previous content
+    
+    // Handle specific opgave content
+    if (opgaveId === '2') {
+        // Add YouTube video for opgave 2
+        videoContainer.innerHTML = `
+            <div class="video-container">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/jm2ekl2agyM"
+                frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media;
+                gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>`;
+    } else if (opgaveId === '5') {
+        // Add image for opgave 5
+        videoContainer.innerHTML = '<img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-5Z2qyT2BxJBVuUn5NWP52y5qw7ReB7.png" alt="Man reading newspaper on commute" style="max-width:100%; border-radius:8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">';
+    } else if (opgaveId === '6a') {
+        // Prepare the story container for opgave 6a but don't show it yet
+        storyContainer.innerHTML = `
+            <div class="story-container">
+                <h3>The Gift by Karen Phillips</h3>
+                <p>"Hi, Mum. Dad's getting married." Elly runs through the back door, swings herself up onto the bench.</p>
+                <p>"Who brought you home?" I ask, buying time while I absorb this piece of news that Ron didn't think to mention when I spoke to him a couple of weeks ago.</p>
+                <p>"Amelia. Dad's still milking. What'll you give them for a present?"</p>
+                <p>"I don't know. When's the wedding?"</p>
+                <p>"Soon, I think."</p>
+                <p>"How many times have I asked you not to sit on the bench?"</p>
+                <p>Elly slides down, turns her bubble gum over in her mouth. "So, what will you give them?"</p>
+                <p>"I need to think about it." What's the etiquette regarding this? Does the ex-wife buy a present for the next wife?</p>
+                <p>"Amelia's painted the back-door pink. It's her favourite colour."</p>
+                <p>"Pink? What did Dad say about that?"</p>
+                <p>"He likes it. Better than boring old brown."</p>
+                <p>I remember the mud-tide that crept up the door as everyone kicked their gumboots off so that they collapsed at odd angles on the old wooden floorboards like wounded bodies on a battlefield.</p>
+                <p>"Amelia's got this rack where we all put our boots."</p>
+                <p>"Even Dad?"</p>
+                <p>"Of course. Her gumboots are pink with black spots."</p>
+                <p>"Pink's a nice, cheerful colour," I say in the non-judgemental voice recommended by experts when your child talks about the new woman in your ex-husband's life.</p>
+                <p>"Dad and Amelia are going to Bali for their honeymoon."</p>
+                <p>"Bali?" [...]</p>
+                <p>She lifts the lid off the pot on the stove. "What's this? It looks disgusting."</p>
+                <p>"Soup."</p>
+                <p>"Amelia's cooking salmon for Dad tonight."</p>
+                <p>"You should have stayed there for dinner then."</p>
+                <p>Elly slams the lid back onto the pot. "Why are you so grumpy? I don't even like salmon."</p>
+                <p>Elly told me that Ron met Amelia at the health food shop where his doctor sent him to buy something for the cracks on his hands – testimony to our cold, wet winters. Shortly afterwards, Elly reported that Amelia was growing flowers in my old vegetable garden. "All colours, Mum. You'd like them. She makes different creams with them."</p>
+                <p>The farm's a hard taskmaster for someone on their own, but I didn't expect Ron to find my replacement quite so quickly, and somehow I thought he would choose a stronger, less tired version of me. Instead, he's chosen Amelia of the pink back door and expensive salmon dinners. Amelia who never goes near the milking shed, says Elly. No one warns you that divorce turns you into a spy. Quizzing the kids about the time they spent on the farm with their father was a no-no according to the "surviving divorce" books I was reading back then, but I mentally pounced on every fact they volunteered, storing it away for future use as a crocodile stores drowned prey under a muddy bank for a future meal. Soon after she moved under the covers of my old bed, I bumped into Amelia with Ron at the supermarket. I could see that Ron was uncomfortable with these two parts of his life almost colliding between the cereals and the jams. I don't know what I expected her to look like. I knew from Elly that Amelia was younger than I am, but I didn't expect the roundness, the bright scarf poured down her back or the scarlet boots. There was no resemblance to me at all. After a few muttered words about the road repairs in the main street, Ron dragged her away. I stood by myself in the aisle, consumed not with animosity towards her but curiosity about Ron and me. How can two people live together, create two beautiful children, but never really know one another? He's probably saying the same words to her that he did to me – words like love and forever. I'm not sure that I believe them anymore.</p>
+                <p>We met at a party. Ron had come up to town for some forgotten reason, so tagged along with a cousin. The sense that he had of his own direction pulled me from my smorgasbord of university subjects like iron filings to a magnet. His parents helped us onto a dairy farm close to them. Even I, a city girl through and through, could appreciate that it was a beautiful piece of land resting in a cradle of bush-clad hills. We worked hard. Another man would have been content, but no matter how good the season was, Ron's dreams were always bigger than our income. The farm was a hole that could never be filled.</p>
+                <p>"We'll lease a run-off for some extra dry stock next year," Ron said one evening after a day spent separating young calves from their mothers. [...]</p>
+                <p>"I don't want a bigger farm. I want us to sell this one and move to town."</p>
+                <p>"What would I do in town?" Ron asked.</p>
+                <p>"Get a regular job with regular pay. I hate how we're always in debt."</p>
+                <p>"It's the only way to grow."</p>
+                <p>"And I'm tired of working in the shed."</p>
+                <p>Ron walked out of the kitchen, slammed the door behind him.</p>
+                <p>"I'll get a job and my wages can pay for a worker," I yelled at his departing back. I didn't see him again until I went to the milking shed next morning.</p>
+                <p>"Can I come with you when the worker gets here?" Elly quietly sidled up to me in the kitchen when I ducked back from the shed to check that the kids were getting ready for school. She slipped her hand into mine and I knew that she had overheard us the night before. There was almost nothing on the farm that Ron and I between us couldn't repair, but neither of us knew how to mend the growing holes in our relationship. Our arguments were as corrosive as rust, silently eating away at both of us, but now dark bubbles had broken through the skin of our days.</p>
+                <p>We dismantled our marriage as flood waters slid towards the road during my second winter as receptionist at our local vet clinic. It's a busy practice – each day brings different animals and their owners and salespeople. [...] Hours pass quickly, leaving no time for regrets and what ifs to enter my mind. With just Ron and me alone on the farm day after long day, I'd learned that marriage offers no guarantee against loneliness. When the flood waters drowned the road, a colleague offered me and the kids the flat under her house. By the time the water had receded, I knew that I would not go back to the farm.</p>
+                <p>An unexpected calm fell after I'd made the decision not to return to the farm, as if we were fighters too exhausted to continue the war. When the noise died away we could hear each other's offers, not of reconciliation – we'd moved too far into hostile territory for that – but of compromise. There was no third party involved; the farm, although a silent tyrant, was exempt from all blame. Sometimes it felt as if we were actors and the script could change at any moment. It was hard to believe that what had begun in the fragrant warmth of summer in front of our old home was ending in an impersonal room and that I was the one ending it.</p>
+                <p>In the lawyer's office, I often wanted to reach over to Ron and touch his hand. I wanted him to look at me with his crooked smile, raise an eyebrow and say, "Forget it. We can sort something out." In those moments I knew that I loved him more than I had for a long time. One evening he came around to the flat. I cooked dinner and we sat down to eat as a family, which we never did at the farm. Ron rarely finished before seven. After dinner, Ben and Elly went off to do their homework. Ron surfed through TV channels while I made us coffee. The kids kept finding reasons to come back into the lounge. I think they couldn't quite believe the tableau in front of them. I wanted to hold the moment, to say, "Can we talk?" But when he didn't find anything worth watching, Ron looked at the time then said, "Early bird catches the cows. I'm off." I watched his coffee grow cold.</p>
+                <p>Guilt and relief combined to ensure that the divorce settlement was not in my favour. At times I hated Ron, but I also hated myself for what I had done. I had failed in the most important job – to make a happy home for my family. Ron was surly and the kids were miserable and it was my fault. Now months go by without Ron and me speaking, but I rang him two weeks ago to share my concern about Ben's plan to go mountain climbing over the summer holidays with what I argued was inadequate equipment.</p>
+                <p>"He'll be fine," Ron said.</p>
+                <p>"I want you to talk to him about it."</p>
+                <p>"He knows my number," replied the man who would stay out on the farm all night with a sick cow in the days when I lived with him. I slammed the phone down but a few days later Ron rang back. Things were sorted with Ben. I was surprised that I'd forgotten how Ron shoves problems into some compartment in his brain until he's ready to think about them. I wanted to know exactly what equipment Ben was taking but I could hear Amelia saying something in the background. For the first time I didn't feel that she was an intruder in the house that I still owned.</p>
+                <p>After our soup, Elly goes to her room to face her unopened homework. I ring Ben.</p>
+                <p>"Did you know that Dad was getting married?" I ask.</p>
+                <p>"Yep."</p>
+                <p>"Why didn't you tell me?"</p>
+                <p>"I thought you knew."</p>
+                <p>"How do you feel about it?"</p>
+                <p>"She's okay. A bit useless on the farm, but it'll be nice for Dad."</p>
+                <p>A door slams in the background. Ben muffles the phone, blocks me out then comes back on.</p>
+                <p>"Hey, Mum. We're just leaving. I'll ring you tomorrow night."</p>
+                <p>I could choke on the number of words I've read about supporting children through their parents' divorce, but now, even in my worst moments when loneliness creeps in with the dark, I know that the kids are okay. Their scars are as faded as they ever will be.</p>
+                <p>Amelia's interest in flowers reminds me of a painting hanging in our local art gallery. At a glance, it's simply an explosion of colour. Pinks and reds and yellows meld into shining dark blues and greens. My first impression was of a riot of blossom somewhere in the tropics, but from different angles or in a different light it could be a flotilla of nudibranchs in a southern ocean, or the deserts and mountains of the world as seen from a space shuttle. It's untitled so that viewers are left to interpret the shadows and shining ridges of colour for themselves. When I was at the farm I wanted to buy a piece of art to lighten the south-facing corner between the front door and our bedroom, but there were always things that we needed more – fencing wire, fertiliser, a new pump. The corner remained empty.</p>
+                <p>Ron and I were not good for each other but without him there would be no Ben and Elly. I can't begin to imagine a life without them. Maybe if I'd hung in there we'd have reached a stage in life where we would go grocery shopping together or talk about holidays in Bali or perhaps Amelia has something that I lack [...]. I'll never know. [...] After school tomorrow I'll take Elly to look at it; although I think Amelia will like it, I no longer presume to know Ron's favourite colours. I'm not sure that I ever did.</p>
+            </div>
+        `;
+    }
+}
 
         // Function to get assignment text - this is where you can easily edit assignments
         function getOpgaveTekst(opgaveNummer) {
@@ -622,7 +705,7 @@ document.addEventListener('click', function(event) {
             const opgaver = {
                 '1': `<strong>Opgave 1:</strong>
 
-Marker i nedenstående tekst alle verberne (udsagnsord) i præsens (nutid) – skriv hvert ord på en ny linje eller skriv dem adskilt med komma:
+<U> Marker i nedenstående tekst alle verberne (udsagnsord) i præsens (nutid) – marker hvert ord tydligt med enten fed eller kursivering:</U>
 
 The library is cool and smells like carpet cleaner, although all I can see is marble. I sign the Visitor's
 Log: Clare Abshire, 11: 15 10 - 26 - 91 Special Collections. I have never been in the Newberry Library
@@ -635,11 +718,11 @@ through the tall windows. I approach the desk and collect a stack of call slips.
 an art history class. My research topic is the Kelmscott Press Chaucer. I look up the book itself and fill
 out a call slip for it.
 
-Omskriv verberne til præteritum (datid)`,
+<U> Omskriv verberne til præteritum (datid)</U>`,
 
                 '2': `<strong>Opgave 2:</strong>
 
-Se nedenstående video, og skriv eksempler på følgende ordklasser i nedenstående lydklip:
+<U>Se nedenstående video, og skriv eksempler på følgende ordklasser i nedenstående lydklip:</U>
 
 4 adjektiver
 4 pronominer
@@ -648,13 +731,13 @@ Se nedenstående video, og skriv eksempler på følgende ordklasser i nedenståe
 
                 '3': `<strong>Opgave 3:</strong>
 
-Omskriv præpositionsforbindelserne til adverbier
+<U>Omskriv præpositionsforbindelserne til adverbier</U>
 
 Omskriv præpositionsforbindelser til adverbier som vist i eksemplet:
 
 <strong>Eksempel:</strong>
-He talked to me in a rather aggressive way.
-He talked to me rather aggressively.
+<I>He talked to me in a rather aggressive way.
+He talked to me rather aggressively.</I>
 
 1) A lot of shopping decisions occur in an automatic manner.
 2) The paintbrush strokes the canvas in a beautiful way.
@@ -666,9 +749,9 @@ He talked to me rather aggressively.
 
                 '4': `<strong>Opgave 4:</strong>
 
-The sentences below, which are from two different texts, have been jumbled.
+<U>The sentences below, which are from two different texts, have been jumbled.</U>
 
-Connect the sentences so that they form two meaningful texts.
+<I>Connect the sentences so that they form two meaningful texts.</I>
 
 a. If you find yourself suddenly gaining access to a time machine,
 b. – and all of it for free.
@@ -685,24 +768,47 @@ l. Actually, the whole "access to a time machine" thing suggested that already,`
 
                 '5': `<strong>Opgave 5:</strong>
 
-Write a text (50-75 words) to match the photo and include all the words from the list below. You are not
-allowed to change the forms of the words.
+<U>Write a text (50-75 words) to match the photo and include all the words from the list below. You are not
+allowed to change the forms of the words.</U>
 
 busy - news - commute - other - reading - daily - work`,
-                '6': `<strong>Opgave 6:</strong>
+        '6a': `<strong>Opgave 6a:</strong>
 
 <h3>Assignment A – Fiction</h3>
 
-<p>Write a summary of "The Gift" in about 150 words.</p>
+<U>1. Write a summary of "The Gift" in about 150 words.</U>
+<U>2. Write a short analytical essay (at least 300 words) about "The Gift". You must focus on the narrator.</U>
+Include the following analytical terms in your essay:
+<I>relationship, setting, contrasts, the title</I>
+Your essay must include references to the text.
 
-<p>Write a short analytical essay (at least 300 words) about "The Gift". You must focus on the narrator.</p>
+<U>3. Taking your starting point in the short story, discuss what it takes to really get to know a person.</U>
+<div class="phrase-box">
+  <span class="phrase">on the one hand</span>
+  <span class="phrase">although</span>
+  <span class="phrase">since</span>
+  <span class="phrase">on the other hand</span>
+  <span class="phrase">likewise</span>
+  <span class="phrase">yet</span>
+  <span class="phrase">in spite of</span>
+  <span class="phrase">to sum up</span>
+</div>
+Use at least two phrases from the box above in your discussion.
 
-<p>Include the following analytical terms in your essay:</p>
-<p>relationship, setting, contrasts, the title</p>
+<h4>Material</h4>
+Karen Phillips, "The Gift", 2017.
 
-<p>Your essay must include references to the text.</p>
+<button id="toggleStory" class="toggle-story">Show Story</button>
+`,
+        '6b': `<strong>Opgave 6b:</strong>
 
-<p>Taking your starting point in the short story, discuss what it takes to really get to know a person.</p>
+<h3>Assignment B – Non-fiction</h3>
+
+<U>1. Write a summary of the article "Men and women can never be friends – but sex has nothing to do with it" in about 150 words.</U>
+
+<U>2. Write a short analytical essay (at least 300 words) about the article and the video clip. Focus on the views on cross-sex friendships.</U>
+
+<U>3. Taking your starting point in the article and the video clip, discuss to what extent men and women can be "just friends".</U>
 
 <div class="phrase-box">
   <span class="phrase">on the one hand</span>
@@ -714,19 +820,75 @@ busy - news - commute - other - reading - daily - work`,
   <span class="phrase">in spite of</span>
   <span class="phrase">to sum up</span>
 </div>
-
-<p>Use at least two phrases from the box above in your discussion.</p>
+Use at least two phrases from the box above in your discussion.
 
 <h4>Material</h4>
-<p>Karen Phillips, "The Gift", 2017.</p>
+<p>Radhika Sanghani, "Men and women can never be friends – but sex has nothing to do with it", The Telegraph website, 2017.</p>
+<p>Julian Huguet, "Can Men and Women Be Just Friends?", SoulPancake website, 2014.</p>
 
-<button id="toggleStory" class="toggle-story">Show Story</button>
+<p><i>Note: Materials for this assignment are not yet available.</i></p>
+`,
+        '6c': `<strong>Opgave 6c:</strong>
+
+<h3>Assignment C – Fiction</h3>
+
+<U>1. Write a summary of the short film "I'm going to Mum's" in about 150 words.</U>
+
+<U>2. Write a short analytical essay (at least 300 words) about the short film. Focus on the relationship between the father and his son.</U>
+
+<U>3. Taking your starting point in the short film, discuss the challenges of being a parent after a divorce.</U>
+
+<div class="phrase-box">
+  <span class="phrase">on the one hand</span>
+  <span class="phrase">although</span>
+  <span class="phrase">since</span>
+  <span class="phrase">on the other hand</span>
+  <span class="phrase">likewise</span>
+  <span class="phrase">yet</span>
+  <span class="phrase">in spite of</span>
+  <span class="phrase">to sum up</span>
+</div>
+Use at least two phrases from the box above in your discussion.
+
+<h4>Material</h4>
+<p>Lauren Jackson, "I'm going to Mum's", YouTube website, 2012.</p>
+
+<p><i>Note: Materials for this assignment are not yet available.</i></p>
 `
-            };
+    };
 
-            // Return the assignment text or default message
-            return opgaver[opgaveNummer] || `Vælg en opgave fra menuen.`;
+    // Return the assignment text or default message
+    return opgaver[opgaveNummer] || `Vælg en opgave fra menuen.`;
+}
+
+// Add event delegation for the toggle story button
+document.addEventListener('click', function(event) {
+    if (event.target && event.target.id === 'toggleStory') {
+        const storyContainer = document.getElementById('storyContainer');
+        const opgaveFormulering = document.getElementById('opgaveFormulering');
+        storyVisible = !storyVisible;
+        
+        if (storyVisible) {
+            storyContainer.style.display = 'block';
+            event.target.textContent = 'Hide Story';
+            // Make story container larger
+            opgaveFormulering.style.height = '150px';
+            opgaveFormulering.style.overflow = 'auto';
+            storyContainer.style.height = 'calc(100% - 200px)';
+            storyContainer.querySelector('.story-container').style.maxHeight = 'none';
+            storyContainer.querySelector('.story-container').style.height = '100%';
+        } else {
+            storyContainer.style.display = 'none';
+            event.target.textContent = 'Show Story';
+            // Reset sizes
+            opgaveFormulering.style.height = '';
+            opgaveFormulering.style.overflow = '';
+            storyContainer.style.height = '';
+            storyContainer.querySelector('.story-container').style.maxHeight = '300px';
+            storyContainer.querySelector('.story-container').style.height = '';
         }
+    }
+});
 
         function startTimer() {
             timer = setInterval(updateTimer, 1000);
@@ -837,3 +999,4 @@ function savePDF() {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>
+
