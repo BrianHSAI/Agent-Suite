@@ -1,5 +1,6 @@
-<!DOCTYPE html>
-<html lang="da">
+<!DOCTYPE
+html >
+  <html lang="da">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,19 +38,60 @@
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
         }
 
+        .start-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .input-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        #studentName {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .exam-title {
+            margin-top: 10px;
+            font-size: 16px;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
         #startButton {
             padding: 15px 35px;
             font-size: 18px;
-            background-color: white;
-            color: var(--primary-color);
+            background-color: var(--secondary-color);
+            color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            width: 100%;
+            opacity: 0.6;
+            pointer-events: none;
         }
 
-        #startButton:hover {
+        #startButton.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #startButton.active:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 15px rgba(0,0,0,0.2);
         }
@@ -173,12 +215,98 @@
             width: 100%;
             height: 100%;
         }
+
+        /* Help icon styles */
+        #helpIcon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+
+        #helpModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .close-button:hover {
+            color: #333;
+        }
     </style>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
 <body>
     <div id="forside">
-        <button id="startButton">Start Prøve</button>
+        <div class="start-container">
+            <div class="input-container">
+                <input type="text" id="studentName" placeholder="Indtast dit navn eller StudieID" />
+                <div class="exam-title">Engelsk B - HF (marts, 2025)</div>
+            </div>
+            <button id="startButton">Start Prøve</button>
+        </div>
+        <div id="helpIcon">?</div>
+    </div>
+
+    <div id="helpModal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Vejledning til opgavesættet</h2>
+            <p>Du skal besvare følgende opgaver:</p>
+            <p>Assignment 1-6</p>
+            <p>I assignment 6 skal du vælge enten A, B eller C</p>
+            <p>Tekster til assignment 6:</p>
+            <p>6 A – Fiction:<br>
+            "The Gift", a short story by Karen Phillips, 2017.</p>
+            <p>6 B – Non-fiction:<br>
+            The texts focus on cross-sex friendships<br>
+            "Men and women can never be friends – but sex has nothing to do with it", an article by Radhika Sanghani,<br>
+            The Telegraph website, 2017.<br>
+            "Can Men and Women Be Just Friends?", a video clip with Julian Huguet from SoulPancake website, 2014.</p>
+            <p>6 C – Fiction:<br>
+            "I'm going to Mum's", a short film by Lauren Jackson, YouTube website, 2012.</p>
+            <h3>Vejledning og skabelon til at løse opgaven</h3>
+            <p>Den samlede eksaminationstid for assignment 1-6 er 5 timer. Besvarelsen bedømmes som en helhed ud fra de faglige mål for niveauet. Der lægges vægt på beherskelsen af det engelske sprog, forståelse af forlægget og færdighed i skriftlig fremstilling på engelsk.</p>
+            <p>Det anbefales, at du skriver din besvarelse i skabelonen, som ligger under Template i menuen til venstre. Besvarelsen afleveres i ét dokument med opgaverne i rækkefølgen 1-6.</p>
+        </div>
     </div>
 
     <div id="prøveSide">
@@ -210,7 +338,8 @@
     <script>
         let timer;
         let timeLeft = 3600; // 1 time i sekunder
-        
+        let studentNameValue = ""; // Variable to store student name
+
         const editor = new Quill('#editor', {
             theme: 'snow',
             modules: {
@@ -238,19 +367,52 @@
             }
         });
 
+        // Check student name input and enable/disable start button
+        document.getElementById('studentName').addEventListener('input', function() {
+            const nameInput = this.value.trim();
+            const startButton = document.getElementById('startButton');
+            
+            if (nameInput.length > 0) {
+                startButton.classList.add('active');
+                studentNameValue = nameInput; // Store the name
+            } else {
+                startButton.classList.remove('active');
+                studentNameValue = "";
+            }
+        });
+
         document.getElementById('startButton').addEventListener('click', function() {
-            document.getElementById('forside').style.display = 'none';
-            document.getElementById('prøveSide').style.display = 'flex';
-            document.getElementById('gemPDF').style.display = 'block';
-            startTimer();
-            // Fjernet openFullscreen() for at løse problem 1
+            // Only proceed if the button is active (name is entered)
+            if (this.classList.contains('active')) {
+                document.getElementById('forside').style.display = 'none';
+                document.getElementById('prøveSide').style.display = 'flex';
+                document.getElementById('gemPDF').style.display = 'block';
+                startTimer();
+            }
+        });
+
+        // Help icon functionality
+        document.getElementById('helpIcon').addEventListener('click', function() {
+            document.getElementById('helpModal').style.display = 'flex';
+        });
+
+        // Close modal when clicking the X
+        document.querySelector('.close-button').addEventListener('click', function() {
+            document.getElementById('helpModal').style.display = 'none';
+        });
+
+        // Close modal when clicking outside the content
+        document.getElementById('helpModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                this.style.display = 'none';
+            }
         });
 
         document.querySelectorAll('.opgave').forEach(function(opgave) {
-            opgave.addEventListener('click', function() {
+            opgave.addEventListener('click', () => {
                 // Fjern 'active' class fra alle opgaver
                 document.querySelectorAll('.opgave').forEach(op => op.classList.remove('active'));
-                
+
                 // Tilføj 'active' class til den valgte opgave
                 opgave.classList.add('active');
 
@@ -260,13 +422,13 @@
                 // Indlejr YouTube-videoer eller billeder baseret på opgave
                 const videoContainer = document.getElementById('videoContainer');
                 videoContainer.innerHTML = ''; // Ryd tidligere indhold
-                
+
                 if (opgaveNummer === '2') {
                     // Tilføj YouTube-video for opgave 2
                     videoContainer.innerHTML = `
                         <div class="video-container">
-                            <iframe width="560" height="315" src="https://www.youtube.com/embed/jm2ekl2agyM" 
-                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; 
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/jm2ekl2agyM"
+                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media;
                             gyroscope; picture-in-picture" allowfullscreen></iframe>
                         </div>`;
                 } else if (opgaveNummer === '5') {
@@ -276,86 +438,84 @@
             });
         });
 
+        // Function to get assignment text - this is where you can easily edit assignments
         function getOpgaveTekst(opgaveNummer) {
-            switch(opgaveNummer) {
-                case '1':
-                    return `<strong>Opgave 1:</strong>
- 
-Marker i nedenstående tekst alle verberne (udsagnsord) i præsens (nutid) – skriv hvert ord på en ny linje eller skriv dem adskilt med komma: 
+            // This is the configuration object for assignments
+            // You can easily edit this object to change assignments
+            const opgaver = {
+                '1': `<strong>Opgave 1:</strong>
 
-The library is cool and smells like carpet cleaner, although all I can see is marble. I sign the Visitor's 
-Log: Clare Abshire, 11: 15 10 - 26 - 91 Special Collections. I have never been in the Newberry Library 
-before, and now that I have gotten past the dark, foreboding entrance I am excited. I have a sort of 
-Christmas - morning sense of the library as a big box full of beautiful books. The elevator is dimly lit, 
-almost silent. I stop on the third floor and fill out an application for a Reader's Card, then I go upstairs 
-to Special Collections. My boot heels rap the wooden floor. The room is quiet and crowded, full of 
-solid, heavy tables piled with books and surrounded by readers. Chicago autumn morning light shines 
-through the tall windows. I approach the desk and collect a stack of call slips. I am writing a paper for 
-an art history class. My research topic is the Kelmscott Press Chaucer. I look up the book itself and fill 
-out a call slip for it. 
- 
-Omskriv verberne til præteritum (datid)`;
+Marker i nedenstående tekst alle verberne (udsagnsord) i præsens (nutid) – skriv hvert ord på en ny linje eller skriv dem adskilt med komma:
 
-                case '2':
-                    return `<strong>Opgave 2:</strong>
+The library is cool and smells like carpet cleaner, although all I can see is marble. I sign the Visitor's
+Log: Clare Abshire, 11: 15 10 - 26 - 91 Special Collections. I have never been in the Newberry Library
+before, and now that I have gotten past the dark, foreboding entrance I am excited. I have a sort of
+Christmas - morning sense of the library as a big box full of beautiful books. The elevator is dimly lit,
+almost silent. I stop on the third floor and fill out an application for a Reader's Card, then I go upstairs
+to Special Collections. My boot heels rap the wooden floor. The room is quiet and crowded, full of
+solid, heavy tables piled with books and surrounded by readers. Chicago autumn morning light shines
+through the tall windows. I approach the desk and collect a stack of call slips. I am writing a paper for
+an art history class. My research topic is the Kelmscott Press Chaucer. I look up the book itself and fill
+out a call slip for it.
 
-Se nedenstående video, og skriv eksempler på følgende ordklasser i nedenstående lydklip: 
+Omskriv verberne til præteritum (datid)`,
 
-4 adjektiver 
-4 pronominer 
-4 præpositioner 
-4 verber`;
+                '2': `<strong>Opgave 2:</strong>
 
-                case '3':
-                    return `<strong>Opgave 3:</strong>
+Se nedenstående video, og skriv eksempler på følgende ordklasser i nedenstående lydklip:
+
+4 adjektiver
+4 pronominer
+4 præpositioner
+4 verber`,
+
+                '3': `<strong>Opgave 3:</strong>
 
 Omskriv præpositionsforbindelserne til adverbier
- 
+
 Omskriv præpositionsforbindelser til adverbier som vist i eksemplet:
 
 <strong>Eksempel:</strong>
-He talked to me in a rather aggressive way. 
-He talked to me rather aggressively. 
- 
-1) A lot of shopping decisions occur in an automatic manner.  
-2) The paintbrush strokes the canvas in a beautiful way. 
-3) We were treated in a very generous manner throughout the week. 
-4) The children were all talking in a loud way. 
-5) The ingredients are combined in a perfect way. 
-6) Transformation is not something that happens in a sudden way. 
-7) He is not really taking criticism in a good way.`;
+He talked to me in a rather aggressive way.
+He talked to me rather aggressively.
 
-                case '4':
-                    return `<strong>Opgave 4:</strong>
+1) A lot of shopping decisions occur in an automatic manner.
+2) The paintbrush strokes the canvas in a beautiful way.
+3) We were treated in a very generous manner throughout the week.
+4) The children were all talking in a loud way.
+5) The ingredients are combined in a perfect way.
+6) Transformation is not something that happens in a sudden way.
+7) He is not really taking criticism in a good way.`,
+
+                '4': `<strong>Opgave 4:</strong>
 
 The sentences below, which are from two different texts, have been jumbled.
 
 Connect the sentences so that they form two meaningful texts.
 
-a. If you find yourself suddenly gaining access to a time machine, 
-b. – and all of it for free. 
-c. that most social scientists, policymakers, and community leaders usually bring up 
-d. then congratulations; you're a science-fiction character. 
-e. Libraries are not the kinds of institutions 
-f. what's the first thing you'd do? 
-g. a citizen, a permanent resident, or even a convicted felon 
-h. but the desire to kill Hitler clinches it. 
-i. when they discuss social capital and how to build it. 
-j. If you said "kill Adolf Hitler", 
-k. But they offer something for everyone, regardless of whether they're 
-l. Actually, the whole "access to a time machine" thing suggested that already,`;
+a. If you find yourself suddenly gaining access to a time machine,
+b. – and all of it for free.
+c. that most social scientists, policymakers, and community leaders usually bring up
+d. then congratulations; you're a science-fiction character.
+e. Libraries are not the kinds of institutions
+f. what's the first thing you'd do?
+g. a citizen, a permanent resident, or even a convicted felon
+h. but the desire to kill Hitler clinches it.
+i. when they discuss social capital and how to build it.
+j. If you said "kill Adolf Hitler",
+k. But they offer something for everyone, regardless of whether they're
+l. Actually, the whole "access to a time machine" thing suggested that already,`,
 
-                case '5':
-                    return `<strong>Opgave 5:</strong>
+                '5': `<strong>Opgave 5:</strong>
 
-Write a text (50-75 words) to match the photo and include all the words from the list below. You are not 
+Write a text (50-75 words) to match the photo and include all the words from the list below. You are not
 allowed to change the forms of the words.
 
-busy - news - commute - other - reading - daily - work`;
+busy - news - commute - other - reading - daily - work`
+            };
 
-                default:
-                    return `Vælg en opgave fra menuen.`;
-            }
+            // Return the assignment text or default message
+            return opgaver[opgaveNummer] || `Vælg en opgave fra menuen.`;
         }
 
         function startTimer() {
@@ -377,19 +537,6 @@ busy - news - commute - other - reading - daily - work`;
             }
         }
 
-        function openFullscreen() {
-            const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen();
-            } else if (elem.mozRequestFullScreen) { // Firefox
-                elem.mozRequestFullScreen();
-            } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { // IE/Edge
-                elem.msRequestFullscreen();
-            }
-        }
-
         // Ryd tekst ved browserlukning
         window.addEventListener('beforeunload', function(event) {
             if (timeLeft >= 0) {
@@ -398,31 +545,85 @@ busy - news - commute - other - reading - daily - work`;
         });
 
         document.getElementById('gemPDF').addEventListener('click', function() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+    savePDF();
+});
 
-            // Løsning til problem 2: Konverter HTML til ren tekst
-            const editorContent = editor.getText(); // Henter ren tekst uden HTML-tags
-            
-            // Tilføj hovedindhold
-            doc.setFontSize(12);
-            doc.text(editorContent, 10, 10);
-            
-            // Tilføj vandmærke/fodnote med dato og tid
-            const now = new Date();
-            const dateTimeString = `Genereret: ${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK')}`;
-            
-            // Beregn sidens højde og placer fodnoten nederst
+function savePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Get the HTML content from the editor to preserve formatting
+    const editorContent = document.querySelector('.ql-editor').innerHTML;
+    
+    // Create a temporary div to render the HTML content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = editorContent;
+    document.body.appendChild(tempDiv);
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    
+    // Apply some basic styling to maintain formatting
+    tempDiv.querySelectorAll('p').forEach(p => {
+        p.style.margin = '0 0 10px 0';
+    });
+    
+    tempDiv.querySelectorAll('strong, b').forEach(el => {
+        el.style.fontWeight = 'bold';
+    });
+    
+    tempDiv.querySelectorAll('em, i').forEach(el => {
+        el.style.fontStyle = 'italic';
+    });
+    
+    tempDiv.querySelectorAll('ul, ol').forEach(list => {
+        list.style.paddingLeft = '20px';
+        list.style.margin = '10px 0';
+    });
+    
+    // Use html2canvas to capture the formatted content
+    html2canvas(tempDiv).then(canvas => {
+        // Remove the temporary div
+        document.body.removeChild(tempDiv);
+        
+        // Add the canvas as an image to the PDF
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 190; // mm
+        const pageHeight = 297; // A4 height
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 20);
+        
+        // Add new pages if content overflows
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            doc.addPage();
+            doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= (pageHeight - 20);
+        }
+        
+        // Add footer with date and time
+        const now = new Date();
+        const dateTimeString = `Genereret: ${now.toLocaleDateString('da-DK')} ${now.toLocaleTimeString('da-DK')}`;
+        const pageCount = doc.internal.getNumberOfPages();
+        
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
             const pageHeight = doc.internal.pageSize.height;
-            
-            // Tilføj fodnote med mindre skriftstørrelse
             doc.setFontSize(8);
-            doc.setTextColor(150, 150, 150); // Grå farve
+            doc.setTextColor(150, 150, 150);
             doc.text(dateTimeString, 10, pageHeight - 10);
-            
-            doc.save('besvarelser.pdf');
-        });
+        }
+        
+        // Use student name for the filename
+        const filename = studentNameValue ? `${studentNameValue.replace(/\s+/g, '_')}.pdf` : 'besvarelser.pdf';
+        doc.save(filename);
+    });
+}
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>
