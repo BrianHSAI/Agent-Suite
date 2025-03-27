@@ -271,6 +271,82 @@ html >
         .close-button:hover {
             color: #333;
         }
+
+.download-container {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.download-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.phrase-box {
+    background-color: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 15px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.phrase {
+    background-color: #e2e8f0;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-style: italic;
+}
+
+.story-container {
+    background-color: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.story-container h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.toggle-story {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+}
+
+.toggle-story:hover {
+    background-color: var(--primary-color);
+}
     </style>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
@@ -317,6 +393,7 @@ html >
                 <li class="opgave" data-opgave="3">Opgave 3</li>
                 <li class="opgave" data-opgave="4">Opgave 4</li>
                 <li class="opgave" data-opgave="5">Opgave 5</li>
+                <li class="opgave" data-opgave="6">Opgave 6</li>
             </ul>
         </div>
         <div id="content">
@@ -325,6 +402,7 @@ html >
                     <p id="opgaveTekst">Vælg en opgave fra menuen.</p>
                 </div>
                 <div id="videoContainer"></div>
+                <div id="storyContainer" style="display: none;"></div>
             </div>
             <div id="skrivefelt">
                 <div id="editor"></div>
@@ -339,6 +417,7 @@ html >
         let timer;
         let timeLeft = 3600; // 1 time i sekunder
         let studentNameValue = ""; // Variable to store student name
+        let storyVisible = false; // Track if story is visible
 
         const editor = new Quill('#editor', {
             theme: 'snow',
@@ -364,6 +443,23 @@ html >
             if (selectedText) {
                 // Indsæt teksten direkte uden bekræftelse
                 editor.insertText(editor.getLength() - 1, selectedText);
+            }
+        });
+
+        // Allow transferring selected text from the story container to the editor
+        document.addEventListener('mouseup', function(event) {
+            const storyContainer = document.getElementById('storyContainer');
+            if (storyContainer && storyContainer.style.display !== 'none' && storyContainer.contains(event.target)) {
+                const selectedText = window.getSelection().toString().trim();
+                if (selectedText) {
+                    // Insert the selected text at the current cursor position
+                    const range = editor.getSelection();
+                    if (range) {
+                        editor.insertText(range.index, selectedText);
+                    } else {
+                        editor.insertText(editor.getLength() - 1, selectedText);
+                    }
+                }
             }
         });
 
@@ -421,7 +517,10 @@ html >
 
                 // Indlejr YouTube-videoer eller billeder baseret på opgave
                 const videoContainer = document.getElementById('videoContainer');
+                const storyContainer = document.getElementById('storyContainer');
+                
                 videoContainer.innerHTML = ''; // Ryd tidligere indhold
+                storyContainer.style.display = 'none'; // Hide story container by default
 
                 if (opgaveNummer === '2') {
                     // Tilføj YouTube-video for opgave 2
@@ -434,9 +533,87 @@ html >
                 } else if (opgaveNummer === '5') {
                     // Tilføj det rigtige billede for opgave 5
                     videoContainer.innerHTML = '<img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-5Z2qyT2BxJBVuUn5NWP52y5qw7ReB7.png" alt="Man reading newspaper on commute" style="max-width:100%; border-radius:8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">';
+                } else if (opgaveNummer === '6') {
+                    // Show the story for opgave 6
+                    storyContainer.style.display = 'block';
+                    storyContainer.innerHTML = `
+                        <div class="story-container">
+                            <h3>The Gift by Karen Phillips</h3>
+                            <p>"Hi, Mum. Dad's getting married." Elly runs through the back door, swings herself up onto the bench.</p>
+                            <p>"Who brought you home?" I ask, buying time while I absorb this piece of news that Ron didn't think to mention when I spoke to him a couple of weeks ago.</p>
+                            <p>"Amelia. Dad's still milking. What'll you give them for a present?"</p>
+                            <p>"I don't know. When's the wedding?"</p>
+                            <p>"Soon, I think."</p>
+                            <p>"How many times have I asked you not to sit on the bench?"</p>
+                            <p>Elly slides down, turns her bubble gum over in her mouth. "So, what will you give them?"</p>
+                            <p>"I need to think about it." What's the etiquette regarding this? Does the ex-wife buy a present for the next wife?</p>
+                            <p>"Amelia's painted the back-door pink. It's her favourite colour."</p>
+                            <p>"Pink? What did Dad say about that?"</p>
+                            <p>"He likes it. Better than boring old brown."</p>
+                            <p>I remember the mud-tide that crept up the door as everyone kicked their gumboots off so that they collapsed at odd angles on the old wooden floorboards like wounded bodies on a battlefield.</p>
+                            <p>"Amelia's got this rack where we all put our boots."</p>
+                            <p>"Even Dad?"</p>
+                            <p>"Of course. Her gumboots are pink with black spots."</p>
+                            <p>"Pink's a nice, cheerful colour," I say in the non-judgemental voice recommended by experts when your child talks about the new woman in your ex-husband's life.</p>
+                            <p>"Dad and Amelia are going to Bali for their honeymoon."</p>
+                            <p>"Bali?" [...]</p>
+                            <p>She lifts the lid off the pot on the stove. "What's this? It looks disgusting."</p>
+                            <p>"Soup."</p>
+                            <p>"Amelia's cooking salmon for Dad tonight."</p>
+                            <p>"You should have stayed there for dinner then."</p>
+                            <p>Elly slams the lid back onto the pot. "Why are you so grumpy? I don't even like salmon."</p>
+                            <p>Elly told me that Ron met Amelia at the health food shop where his doctor sent him to buy something for the cracks on his hands – testimony to our cold, wet winters. Shortly afterwards, Elly reported that Amelia was growing flowers in my old vegetable garden. "All colours, Mum. You'd like them. She makes different creams with them."</p>
+                            <p>The farm's a hard taskmaster for someone on their own, but I didn't expect Ron to find my replacement quite so quickly, and somehow I thought he would choose a stronger, less tired version of me. Instead, he's chosen Amelia of the pink back door and expensive salmon dinners. Amelia who never goes near the milking shed, says Elly. No one warns you that divorce turns you into a spy. Quizzing the kids about the time they spent on the farm with their father was a no-no according to the "surviving divorce" books I was reading back then, but I mentally pounced on every fact they volunteered, storing it away for future use as a crocodile stores drowned prey under a muddy bank for a future meal. Soon after she moved under the covers of my old bed, I bumped into Amelia with Ron at the supermarket. I could see that Ron was uncomfortable with these two parts of his life almost colliding between the cereals and the jams. I don't know what I expected her to look like. I knew from Elly that Amelia was younger than I am, but I didn't expect the roundness, the bright scarf poured down her back or the scarlet boots. There was no resemblance to me at all. After a few muttered words about the road repairs in the main street, Ron dragged her away. I stood by myself in the aisle, consumed not with animosity towards her but curiosity about Ron and me. How can two people live together, create two beautiful children, but never really know one another? He's probably saying the same words to her that he did to me – words like love and forever. I'm not sure that I believe them anymore.</p>
+                            <p>We met at a party. Ron had come up to town for some forgotten reason, so tagged along with a cousin. The sense that he had of his own direction pulled me from my smorgasbord of university subjects like iron filings to a magnet. His parents helped us onto a dairy farm close to them. Even I, a city girl through and through, could appreciate that it was a beautiful piece of land resting in a cradle of bush-clad hills. We worked hard. Another man would have been content, but no matter how good the season was, Ron's dreams were always bigger than our income. The farm was a hole that could never be filled.</p>
+                            <p>"We'll lease a run-off for some extra dry stock next year," Ron said one evening after a day spent separating young calves from their mothers. [...]</p>
+                            <p>"I don't want a bigger farm. I want us to sell this one and move to town."</p>
+                            <p>"What would I do in town?" Ron asked.</p>
+                            <p>"Get a regular job with regular pay. I hate how we're always in debt."</p>
+                            <p>"It's the only way to grow."</p>
+                            <p>"And I'm tired of working in the shed."</p>
+                            <p>Ron walked out of the kitchen, slammed the door behind him.</p>
+                            <p>"I'll get a job and my wages can pay for a worker," I yelled at his departing back. I didn't see him again until I went to the milking shed next morning.</p>
+                            <p>"Can I come with you when the worker gets here?" Elly quietly sidled up to me in the kitchen when I ducked back from the shed to check that the kids were getting ready for school. She slipped her hand into mine and I knew that she had overheard us the night before. There was almost nothing on the farm that Ron and I between us couldn't repair, but neither of us knew how to mend the growing holes in our relationship. Our arguments were as corrosive as rust, silently eating away at both of us, but now dark bubbles had broken through the skin of our days.</p>
+                            <p>We dismantled our marriage as flood waters slid towards the road during my second winter as receptionist at our local vet clinic. It's a busy practice – each day brings different animals and their owners and salespeople. [...] Hours pass quickly, leaving no time for regrets and what ifs to enter my mind. With just Ron and me alone on the farm day after long day, I'd learned that marriage offers no guarantee against loneliness. When the flood waters drowned the road, a colleague offered me and the kids the flat under her house. By the time the water had receded, I knew that I would not go back to the farm.</p>
+                            <p>An unexpected calm fell after I'd made the decision not to return to the farm, as if we were fighters too exhausted to continue the war. When the noise died away we could hear each other's offers, not of reconciliation – we'd moved too far into hostile territory for that – but of compromise. There was no third party involved; the farm, although a silent tyrant, was exempt from all blame. Sometimes it felt as if we were actors and the script could change at any moment. It was hard to believe that what had begun in the fragrant warmth of summer in front of our old home was ending in an impersonal room and that I was the one ending it.</p>
+                            <p>In the lawyer's office, I often wanted to reach over to Ron and touch his hand. I wanted him to look at me with his crooked smile, raise an eyebrow and say, "Forget it. We can sort something out." In those moments I knew that I loved him more than I had for a long time. One evening he came around to the flat. I cooked dinner and we sat down to eat as a family, which we never did at the farm. Ron rarely finished before seven. After dinner, Ben and Elly went off to do their homework. Ron surfed through TV channels while I made us coffee. The kids kept finding reasons to come back into the lounge. I think they couldn't quite believe the tableau in front of them. I wanted to hold the moment, to say, "Can we talk?" But when he didn't find anything worth watching, Ron looked at the time then said, "Early bird catches the cows. I'm off." I watched his coffee grow cold.</p>
+                            <p>Guilt and relief combined to ensure that the divorce settlement was not in my favour. At times I hated Ron, but I also hated myself for what I had done. I had failed in the most important job – to make a happy home for my family. Ron was surly and the kids were miserable and it was my fault. Now months go by without Ron and me speaking, but I rang him two weeks ago to share my concern about Ben's plan to go mountain climbing over the summer holidays with what I argued was inadequate equipment.</p>
+                            <p>"He'll be fine," Ron said.</p>
+                            <p>"I want you to talk to him about it."</p>
+                            <p>"He knows my number," replied the man who would stay out on the farm all night with a sick cow in the days when I lived with him. I slammed the phone down but a few days later Ron rang back. Things were sorted with Ben. I was surprised that I'd forgotten how Ron shoves problems into some compartment in his brain until he's ready to think about them. I wanted to know exactly what equipment Ben was taking but I could hear Amelia saying something in the background. For the first time I didn't feel that she was an intruder in the house that I still owned.</p>
+                            <p>After our soup, Elly goes to her room to face her unopened homework. I ring Ben.</p>
+                            <p>"Did you know that Dad was getting married?" I ask.</p>
+                            <p>"Yep."</p>
+                            <p>"Why didn't you tell me?"</p>
+                            <p>"I thought you knew."</p>
+                            <p>"How do you feel about it?"</p>
+                            <p>"She's okay. A bit useless on the farm, but it'll be nice for Dad."</p>
+                            <p>A door slams in the background. Ben muffles the phone, blocks me out then comes back on.</p>
+                            <p>"Hey, Mum. We're just leaving. I'll ring you tomorrow night."</p>
+                            <p>I could choke on the number of words I've read about supporting children through their parents' divorce, but now, even in my worst moments when loneliness creeps in with the dark, I know that the kids are okay. Their scars are as faded as they ever will be.</p>
+                            <p>Amelia's interest in flowers reminds me of a painting hanging in our local art gallery. At a glance, it's simply an explosion of colour. Pinks and reds and yellows meld into shining dark blues and greens. My first impression was of a riot of blossom somewhere in the tropics, but from different angles or in a different light it could be a flotilla of nudibranchs in a southern ocean, or the deserts and mountains of the world as seen from a space shuttle. It's untitled so that viewers are left to interpret the shadows and shining ridges of colour for themselves. When I was at the farm I wanted to buy a piece of art to lighten the south-facing corner between the front door and our bedroom, but there were always things that we needed more – fencing wire, fertiliser, a new pump. The corner remained empty.</p>
+                            <p>Ron and I were not good for each other but without him there would be no Ben and Elly. I can't begin to imagine a life without them. Maybe if I'd hung in there we'd have reached a stage in life where we would go grocery shopping together or talk about holidays in Bali or perhaps Amelia has something that I lack [...]. I'll never know. [...] After school tomorrow I'll take Elly to look at it; although I think Amelia will like it, I no longer presume to know Ron's favourite colours. I'm not sure that I ever did.</p>
+                        </div>
+                    `;
                 }
             });
         });
+
+// Add event delegation for the toggle story button
+document.addEventListener('click', function(event) {
+    if (event.target && event.target.id === 'toggleStory') {
+        const storyContainer = document.getElementById('storyContainer');
+        storyVisible = !storyVisible;
+        
+        if (storyVisible) {
+            storyContainer.style.display = 'block';
+            event.target.textContent = 'Hide Story';
+        } else {
+            storyContainer.style.display = 'none';
+            event.target.textContent = 'Show Story';
+        }
+    }
+});
 
         // Function to get assignment text - this is where you can easily edit assignments
         function getOpgaveTekst(opgaveNummer) {
@@ -511,7 +688,40 @@ l. Actually, the whole "access to a time machine" thing suggested that already,`
 Write a text (50-75 words) to match the photo and include all the words from the list below. You are not
 allowed to change the forms of the words.
 
-busy - news - commute - other - reading - daily - work`
+busy - news - commute - other - reading - daily - work`,
+                '6': `<strong>Opgave 6:</strong>
+
+<h3>Assignment A – Fiction</h3>
+
+<p>Write a summary of "The Gift" in about 150 words.</p>
+
+<p>Write a short analytical essay (at least 300 words) about "The Gift". You must focus on the narrator.</p>
+
+<p>Include the following analytical terms in your essay:</p>
+<p>relationship, setting, contrasts, the title</p>
+
+<p>Your essay must include references to the text.</p>
+
+<p>Taking your starting point in the short story, discuss what it takes to really get to know a person.</p>
+
+<div class="phrase-box">
+  <span class="phrase">on the one hand</span>
+  <span class="phrase">although</span>
+  <span class="phrase">since</span>
+  <span class="phrase">on the other hand</span>
+  <span class="phrase">likewise</span>
+  <span class="phrase">yet</span>
+  <span class="phrase">in spite of</span>
+  <span class="phrase">to sum up</span>
+</div>
+
+<p>Use at least two phrases from the box above in your discussion.</p>
+
+<h4>Material</h4>
+<p>Karen Phillips, "The Gift", 2017.</p>
+
+<button id="toggleStory" class="toggle-story">Show Story</button>
+`
             };
 
             // Return the assignment text or default message
