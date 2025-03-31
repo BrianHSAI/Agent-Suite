@@ -68,6 +68,9 @@
             font-size: 28px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
+        .red-border {
+            border: 3px solid #e53e3e !important;
+        }
     </style>
 </head>
 <body>
@@ -75,15 +78,13 @@
         <h1>Værktøjsmenu</h1>
         <div class="button-grid">
             <button onclick="openMeeting()">Mødehjælp</button>
-            <button onclick="openReader()">Oplæser</button>
+            <button onclick="openReader()" class="red-border">Oplæser</button>
             <button onclick="openPodcast()">Podcast-generator</button>
             <button onclick="openProduktivitet()">Produktivitetshjælper</button>
-            <button onclick="openJeopardy()">Jeopardy</button>
-            <button onclick="openMillionaer()">Hvem vil være millionær</button>
-            <button onclick="openQuiz()">Quiz-generator</button>
-            <button onclick="openMaterialehjaelp()">Undervisningssekvenser</button>
-            <button onclick="openPromptGenerator()">Prompt Generator</button>
-            <button onclick="openProeve()">Prøve</button>
+            <button onclick="openMaterialehjaelp()" class="red-border">Undervisningssekvenser</button>
+            <button onclick="openPromptGenerator()" class="red-border">Prompt Generator</button>
+            <button onclick="openProeve()" class="red-border">Prøve</button>
+            <button onclick="openTaleTilTekst()" class="red-border">Tale-Til-Tekst</button>
         </div>
         <button onclick="openForside()" class="home-button">Tilbage til Forside</button>
     </div>
@@ -100,15 +101,6 @@
         function openProduktivitet() {
             window.location.href = 'Produktivitet.html';
         }
-        function openJeopardy() {
-            window.location.href = 'Jeopardy.html';
-        }
-        function openMillionaer() {
-            window.location.href = 'Millionær.html';
-        }
-        function openQuiz() {
-            window.location.href = 'Quiz.html';
-        }
         function openMaterialehjaelp() {
             window.location.href = 'Materialehjælp.html';
         }
@@ -117,6 +109,9 @@
         }
         function openProeve() {
             window.location.href = 'Prøve.html';
+        }
+        function openTaleTilTekst() {
+            window.location.href = 'Tale-til-tekst.html';
         }
         function openForside() {
             window.location.href = 'Forside.html';
