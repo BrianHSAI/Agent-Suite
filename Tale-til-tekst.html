@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tale Transskription</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        container: {
+          center: true,
+          padding: "2rem",
+          screens: {
+            "2xl": "1400px",
+          },
+        },
+        extend: {
+          colors: {
+            border: "hsl(var(--border))",
+            input: "hsl(var(--input))",
+            ring: "hsl(var(--ring))",
+            background: "hsl(var(--background))",
+            foreground: "hsl(var(--foreground))",
+            primary: {
+              DEFAULT: "hsl(var(--primary))",
+              foreground: "hsl(var(--primary-foreground))",
+            },
+            secondary: {
+              DEFAULT: "hsl(var(--secondary))",
+              foreground: "hsl(var(--secondary-foreground))",
+            },
+            destructive: {
+              DEFAULT: "hsl(var(--destructive))",
+              foreground: "hsl(var(--destructive-foreground))",
+            },
+            muted: {
+              DEFAULT: "hsl(var(--muted))",
+              foreground: "hsl(var(--muted-foreground))",
+            },
+            accent: {
+              DEFAULT: "hsl(var(--accent))",
+              foreground: "hsl(var(--accent-foreground))",
+            },
+            card: {
+              DEFAULT: "hsl(var(--card))",
+              foreground: "hsl(var(--card-foreground))",
+            },
+          },
+          borderRadius: {
+            lg: "var(--radius)",
+            md: "calc(var(--radius) - 2px)",
+            sm: "calc(var(--radius) - 4px)",
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 222.2 84% 4.9%;
+      --primary: 222.2 47.4% 11.2%;
+      --primary-foreground: 210 40% 98%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222.2 47.4% 11.2%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --accent: 210 40% 96.1%;
+      --accent-foreground: 222.2 47.4% 11.2%;
+      --destructive: 0 84.2% 60.2%;
+      --destructive-foreground: 210 40% 98%;
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 222.2 84% 4.9%;
+      --radius: 0.5rem;
+    }
+
+    .dark {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --popover: 222.2 84% 4.9%;
+      --popover-foreground: 210 40% 98%;
+      --primary: 210 40% 98%;
+      --primary-foreground: 222.2 47.4% 11.2%;
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --accent: 217.2 32.6% 17.5%;
+      --accent-foreground: 210 40% 98%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 210 40% 98%;
+      --border: 217.2 32.6% 17.5%;
+      --input: 217.2 32.6% 17.5%;
+      --ring: 212.7 26.8% 83.9%;
+    }
+
+    * {
+      border-color: hsl(var(--border));
+    }
+
+    body {
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 50;
+    }
+
+    .toast {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background-color: hsl(var(--card));
+      color: hsl(var(--card-foreground));
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      margin-top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      max-width: 350px;
+      opacity: 0;
+      transform: translateY(1rem);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .toast-description {
+      font-size: 0.875rem;
+      color: hsl(var(--muted-foreground));
+    }
+
+    .select-container {
+      position: relative;
+    }
+
+    .select-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background-color: transparent;
+      border: 1px solid hsl(var(--border));
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      height: 2.5rem;
+    }
+
+    .select-content {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: hsl(var(--card));
+      border: 1px solid hsl(var(--border));
+      border-radius: 0.375rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      z-index: 10;
+      max-height: 15rem;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .select-content.show {
+      display: block;
+    }
+
+    .select-item {
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+    }
+
+    .select-item:hover {
+      background-color: hsl(var(--accent));
+    }
+  </style>
+</head>
+<body>
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-3xl rounded-lg border bg-card text-card-foreground shadow-sm">
+      <!-- Card Header -->
+      <div class="flex flex-col space-y-1.5 p-6">
+        <h3 class="text-2xl font-semibold leading-none tracking-tight">Tale Transskription</h3>
+        <p class="text-sm text-muted-foreground">Vælg sprog og klik på mikrofonknappen for at begynde at transskribere</p>
+      </div>
+      
+      <!-- Card Content -->
+      <div class="p-6 pt-0 space-y-4">
+        <div class="grid w-full max-w-sm items-center gap-1.5">
+          <label for="language" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Sprog</label>
+          <div class="select-container">
+            <button id="language-trigger" class="select-trigger">
+              <span id="selected-language">Dansk</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 opacity-50"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div id="language-content" class="select-content">
+              <!-- Language options will be added here by JavaScript -->
+            </div>
+          </div>
+        </div>
+        
+        <textarea id="transcript" placeholder="Din transskription vil vises her..." class="flex min-h-[200px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"></textarea>
+      </div>
+      
+      <!-- Card Footer -->
+      <div class="flex items-center p-6 pt-0 justify-between">
+        <div>
+          <button id="record-button" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 mr-2">
+            <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-4 w-4"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg>
+            <span id="record-text">Start optagelse</span>
+          </button>
+          <button id="clear-button" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2" disabled>
+            Ryd tekst
+          </button>
+        </div>
+        <div>
+          <button id="copy-button" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 mr-2" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-4 w-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            Kopiér
+          </button>
+          <button id="save-button" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 h-4 w-4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            Gem
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if browser supports the Web Speech API
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showToast('Error', 'Din browser understøtter ikke talegenkendelse. Prøv Chrome, Edge eller Safari.', 'destructive');
+        document.getElementById('record-button').disabled = true;
+        return;
+      }
+
+      // Language options
+      const languages = [
+        { code: "da-DK", name: "Dansk" },
+        { code: "en-US", name: "English (US)" },
+        { code: "en-GB", name: "English (UK)" },
+        { code: "sv-SE", name: "Svenska" },
+        { code: "no-NO", name: "Norsk" },
+        { code: "de-DE", name: "Deutsch" },
+        { code: "fr-FR", name: "Français" },
+        { code: "es-ES", name: "Español" },
+        { code: "it-IT", name: "Italiano" },
+        { code: "nl-NL", name: "Nederlands" },
+        { code: "fi-FI", name: "Suomi" },
+        { code: "pl-PL", name: "Polski" },
+      ];
+
+      // Populate language dropdown
+      const languageContent = document.getElementById('language-content');
+      languages.forEach(lang => {
+        const item = document.createElement('div');
+        item.className = 'select-item';
+        item.textContent = lang.name;
+        item.dataset.value = lang.code;
+        item.addEventListener('click', () => {
+          document.getElementById('selected-language').textContent = lang.name;
+          currentLanguage = lang.code;
+          languageContent.classList.remove('show');
+          
+          // If currently recording, restart with new language
+          if (isRecording) {
+            recognition.stop();
+            setTimeout(() => {
+              recognition.lang = currentLanguage;
+              recognition.start();
+            }, 100);
+          }
+        });
+        languageContent.appendChild(item);
+      });
+
+      // Toggle language dropdown
+      document.getElementById('language-trigger').addEventListener('click', () => {
+        languageContent.classList.toggle('show');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.select-container')) {
+          languageContent.classList.remove('show');
+        }
+      });
+
+      // Initialize variables
+      let isRecording = false;
+      let currentLanguage = 'da-DK';
+      let finalTranscript = '';
+      let interimTranscript = '';
+      
+      // Initialize speech recognition
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = currentLanguage;
+
+      // DOM elements
+      const recordButton = document.getElementById('record-button');
+      const recordText = document.getElementById('record-text');
+      const micIcon = document.getElementById('mic-icon');
+      const transcriptArea = document.getElementById('transcript');
+      const clearButton = document.getElementById('clear-button');
+      const copyButton = document.getElementById('copy-button');
+      const saveButton = document.getElementById('save-button');
+
+      // Speech recognition event handlers
+      recognition.onresult = (event) => {
+        let currentInterimTranscript = '';
+        let newFinalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcriptText = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            newFinalTranscript += ' ' + transcriptText;
+          } else {
+            currentInterimTranscript += transcriptText;
+          }
+        }
+
+        // If we have new final transcript, add it to our variable
+        if (newFinalTranscript) {
+          finalTranscript += newFinalTranscript;
+          // Update the visible transcript with the final text
+          transcriptArea.value = finalTranscript;
+          // Clear interim since it's now part of the final
+          interimTranscript = '';
+        } else {
+          // Just update the interim transcript
+          interimTranscript = currentInterimTranscript;
+          // Display combined transcript (final + current interim)
+          transcriptArea.value = finalTranscript + ' ' + currentInterimTranscript;
+        }
+
+        // Enable buttons if we have text
+        if (transcriptArea.value.trim()) {
+          clearButton.disabled = false;
+          copyButton.disabled = false;
+          saveButton.disabled = false;
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        isRecording = false;
+        updateRecordButton();
+        showToast('Error', `Talegenkendelse fejl: ${event.error}`, 'destructive');
+      };
+
+      // Button event handlers
+      recordButton.addEventListener('click', () => {
+        if (isRecording) {
+          recognition.stop();
+          isRecording = false;
+        } else {
+          // Reset transcripts when starting a new recording
+          if (!transcriptArea.value.trim() || confirm('Start ny optagelse? Dette vil slette den nuværende tekst.')) {
+            finalTranscript = '';
+            interimTranscript = '';
+            transcriptArea.value = '';
+            clearButton.disabled = true;
+            copyButton.disabled = true;
+            saveButton.disabled = true;
+            
+            // Make sure the language is set before starting
+            recognition.lang = currentLanguage;
+            recognition.start();
+            isRecording = true;
+          }
+        }
+        updateRecordButton();
+      });
+
+      clearButton.addEventListener('click', () => {
+        finalTranscript = '';
+        interimTranscript = '';
+        transcriptArea.value = '';
+        clearButton.disabled = true;
+        copyButton.disabled = true;
+        saveButton.disabled = true;
+      });
+
+      copyButton.addEventListener('click', () => {
+        navigator.clipboard.writeText(transcriptArea.value);
+        showToast('Kopieret', 'Tekst kopieret til udklipsholder');
+      });
+
+      saveButton.addEventListener('click', () => {
+        const blob = new Blob([transcriptArea.value], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'transskription.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Gemt', 'Transskription gemt som tekstfil');
+      });
+
+      // Helper functions
+      function updateRecordButton() {
+        if (isRecording) {
+          recordText.textContent = 'Stop optagelse';
+          recordButton.classList.remove('bg-primary');
+          recordButton.classList.add('bg-destructive');
+          micIcon.innerHTML = '<path d="M2 2 L22 22 M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 5.78 1.1 L12 2Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>';
+        } else {
+          recordText.textContent = 'Start optagelse';
+          recordButton.classList.remove('bg-destructive');
+          recordButton.classList.add('bg-primary');
+          micIcon.innerHTML = '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>';
+        }
+      }
+
+      function showToast(title, description, variant = 'default') {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        
+        if (variant === 'destructive') {
+          toast.style.backgroundColor = 'hsl(var(--destructive))';
+          toast.style.color = 'hsl(var(--destructive-foreground))';
+        }
+        
+        toast.innerHTML = `
+          <div class="toast-title">${title}</div>
+          <div class="toast-description">${description}</div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Trigger reflow to enable transition
+        toast.offsetHeight;
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+            toastContainer.removeChild(toast);
+          }, 300);
+        }, 3000);
+      }
+    });
+  </script>
+</body>
+</html>
