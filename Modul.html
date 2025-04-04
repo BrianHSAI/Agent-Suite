@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undervisningsprompt Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+        textarea, select, input {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            background: #eef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .copy-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .copy-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Prompt Generator</h1>
+        <label for="subject">Fag + niveau:</label>
+        <input type="text" id="subject" placeholder="F.eks. Engelsk A-niveau">
+
+        <label for="year">Årgang:</label>
+        <input type="text" id="year" placeholder="F.eks. 2.g">
+
+        <label for="study">Studie:</label>
+        <input type="text" id="study" placeholder="F.eks. STX">
+
+        <label for="plan">Overordnede planer eller ideer til modulet:</label>
+        <textarea id="plan" rows="4" placeholder="Beskriv dine planer her..."></textarea>
+
+        <label for="texts">Tekster til modulet:</label>
+        <textarea id="texts" rows="4" placeholder="Indsæt tekster her..."></textarea>
+
+        <label for="requirements">Andre krav:</label>
+        <textarea id="requirements" rows="3" placeholder="F.eks. opgavetyper, særlige mål..."></textarea>
+
+        <label for="length">Længde på modulet:</label>
+        <input type="text" id="length" placeholder="F.eks. 90 minutter">
+
+        <label for="language">Sprog:</label>
+        <select id="language">
+            <option value="dansk">Dansk</option>
+            <option value="engelsk">Engelsk</option>
+        </select>
+
+        <button onclick="generatePrompt()">Generer Prompt</button>
+
+        <div class="output" id="output"></div>
+
+        <button class="copy-button" id="copyButton" onclick="copyToClipboard()" style="display: none;">Kopier til udklipsholder</button>
+    </div>
+
+    <script>
+        function generatePrompt() {
+            const subject = document.getElementById('subject').value;
+            const year = document.getElementById('year').value;
+            const study = document.getElementById('study').value;
+            const plan = document.getElementById('plan').value;
+            const texts = document.getElementById('texts').value;
+            const requirements = document.getElementById('requirements').value;
+            const length = document.getElementById('length').value;
+            const language = document.getElementById('language').value;
+
+            const prompt = `Forestil dig, at du er gymnasielærer i ${subject} i en ${year} på ${study}. Jeg skal i gang med at planlægge et modul og jeg har lavet følgende overordnede plan:
+
+${plan}
+
+Til modulet bruges disse tekster:
+${texts}
+
+Generer et modul ud fra ovenstående ideer. ${requirements ? `Andre krav: ${requirements}` : ''} Modulet skal være ${length}. Formuler opgaverne på et klart og præcist sprog. Skriv på ${language}.`;
+
+            document.getElementById('output').textContent = prompt;
+            document.getElementById('copyButton').style.display = 'inline-block';
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+            const text = output.textContent;
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    alert("Prompt er kopieret til udklipsholderen!");
+                })
+                .catch(err => {
+                    console.error("Kunne ikke kopiere til udklipsholder:", err);
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ideudvikling til Undervisningsforløb</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        label {
+            font-weight: bold;
+        }
+        textarea, input, select {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        textarea::placeholder, input::placeholder {
+            font-style: italic;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #generatedPrompt {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f4f4f4;
+            border-left: 4px solid #3498db;
+            font-family: "Courier New", Courier, monospace;
+            white-space: pre-wrap;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .copy-button {
+            background-color: #2ecc71;
+            margin-top: 10px;
+        }
+        .copy-button:hover {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ideudvikling til Undervisningsforløb</h1>
+    <p>Besvar spørgsmålene nedenfor for at generere en prompt til dit næste undervisningsforløb:</p>
+    <form id="ideaForm">
+        <label for="level">Målgruppe (fx 2g, 8. klasse, HF): *</label>
+        <input type="text" id="level" name="level" placeholder="Indtast målgruppen" required>
+        
+        <label for="subject">Fag (vælg fag):</label>
+        <select id="subject" name="subject">
+            <option value="Engelsk">Engelsk</option>
+            <option value="Dansk">Dansk</option>
+            <option value="Matematik">Matematik</option>
+            <option value="Historie">Historie</option>
+            <option value="Fysik">Fysik</option>
+            <option value="Kemi">Kemi</option>
+            <option value="Samfundsfag">Samfundsfag</option>
+            <option value="Biologi">Biologi</option>
+            <option value="Geografi">Geografi</option>
+            <option value="Andet">Andet</option>
+        </select>
+
+        <label for="themes">Ønsker til tematiske vinkler: *</label>
+        <textarea id="themes" name="themes" placeholder="Beskriv tematiske vinkler, du ønsker at udforske" rows="3" required></textarea>
+        
+        <label for="ideaCount">Antal ønskede forløbsideer: *</label>
+        <input type="number" id="ideaCount" name="ideaCount" placeholder="Angiv antal ideer, du ønsker" required>
+        
+        <label for="goals">Faglige mål:</label>
+        <textarea id="goals" name="goals" placeholder="Skriv de faglige mål her" rows="3"></textarea>
+        
+        <label for="coreMaterial">Kernestof:</label>
+        <textarea id="coreMaterial" name="coreMaterial" placeholder="Hvilket kernestof skal indgå?" rows="3"></textarea>
+        
+        <label for="links">Links til relevante ressourcer:</label>
+        <textarea id="links" name="links" placeholder="Indsæt links til materialer, du gerne vil bruge" rows="3"></textarea>
+        
+        <label for="materials">Materialer (fx romaner, artikler, videoer):</label>
+        <textarea id="materials" name="materials" placeholder="Hvilke materialer vil du bruge?" rows="3"></textarea>
+        
+        <label for="activities">Aktiviteter (fx gruppearbejde, diskussioner):</label>
+        <textarea id="activities" name="activities" placeholder="Beskriv aktiviteterne i forløbet" rows="3"></textarea>
+        
+        <button type="button" onclick="generatePrompt()">Generer Prompt</button>
+    </form>
+
+    <div id="generatedPrompt"></div>
+
+    <button id="copyButton" class="copy-button" style="display:none;" onclick="copyPrompt()">Kopier til udklipsholder</button>
+
+    <footer>
+        Lavet af: BrianHS - <a href="mailto:kontakt@brianhs.dk">kontakt@brianhs.dk</a>
+    </footer>
+
+    <script>
+        function generatePrompt() {
+            const level = document.getElementById("level").value;
+            const subject = document.getElementById("subject").value || "Ikke angivet";
+            const themes = document.getElementById("themes").value;
+            const ideaCount = document.getElementById("ideaCount").value;
+            const goals = document.getElementById("goals").value || "Ikke angivet";
+            const coreMaterial = document.getElementById("coreMaterial").value || "Ikke angivet";
+            const links = document.getElementById("links").value || "Ingen links angivet";
+            const materials = document.getElementById("materials").value || "Ikke angivet";
+            const activities = document.getElementById("activities").value || "Ikke angivet";
+
+            const prompt = `Forestil dig, at du er gymnasielærer i ${subject} på ${level}. Du er i gang med at planlægge undervisningen for det kommende skoleår, og du skal generere mindst ${ideaCount} forløb, der dækker emner med en god spredning og rammer en bred målgruppe. Fokusér på at inkludere de tematiske vinkler, du har angivet: ${themes}. For hvert forløb skal du:
+- Angive de faglige mål, du ønsker at opnå: ${goals}.
+- Beskrive det kernestof, der skal dækkes: ${coreMaterial}.
+- Inkludere relevante materialer, som du har angivet: ${materials}.
+- Inddrag links til eventuelle kilder, som du har delt: ${links}.
+- Beskriv aktiviteterne, der skal hjælpe med at opnå de faglige mål: ${activities}.
+Skriv det hele i et simpelt, men akademisk sprog, og sørg for, at det er tilpasset den målgruppe, du har valgt: ${level}.`;
+
+            document.getElementById("generatedPrompt").innerText = prompt;
+            document.getElementById("copyButton").style.display = 'inline'; // Vis kopier-knap
+        }
+
+        function copyPrompt() {
+            const promptText = document.getElementById("generatedPrompt").innerText;
+            const textArea = document.createElement('textarea');
+            textArea.value = promptText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert("Prompt kopieret til udklipsholderen!");
+        }
+    </script>
+</body>
+</html
