@@ -18,14 +18,26 @@
             background-color: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            max-width: 800px;
+            max-width: 900px;
             width: 90%;
         }
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+        .columns-container {
+            display: flex;
+            gap: 30px;
             margin-bottom: 25px;
+        }
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .column-header {
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 22px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
         button {
             background: linear-gradient(145deg, #3b82f6, #2563eb);
@@ -68,24 +80,45 @@
             font-size: 28px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
-        .red-border {
-            border: 3px solid #e53e3e !important;
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .columns-container {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Værktøjsmenu</h1>
-        <div class="button-grid">
-            <button onclick="openMeeting()">Mødehjælp</button>
-            <button onclick="openReader()" class="red-border">Oplæser</button>
-            <button onclick="openPodcast()">Podcast-generator</button>
-            <button onclick="openProduktivitet()">Produktivitetshjælper</button>
-            <button onclick="openMaterialehjaelp()" class="red-border">Undervisningssekvenser</button>
-            <button onclick="openPromptGenerator()" class="red-border">Prompt Generator</button>
-            <button onclick="openProeve()" class="red-border">Prøve</button>
-            <button onclick="openTaleTilTekst()" class="red-border">Tale-Til-Tekst</button>
+        
+        <div class="columns-container">
+            <!-- First Column: Prompthjælp -->
+            <div class="column">
+                <h2 class="column-header">Prompthjælp</h2>
+                <button onclick="openMaterialehjaelp()">Undervisningssekvenser</button>
+                <button onclick="openPromptGenerator()">Prompt Generator</button>
+                <button onclick="openSkoleaar()">Planlæg skoleår</button>
+                <button onclick="openForlob()">Planlæg forløb</button>
+                <button onclick="openModul()">Planlæg modul</button>
+                <button onclick="openGrammatiskTraener()">Sproglig hjælp</button>
+                <button onclick="openFeedback()">Feedback til dine elever</button>
+            </div>
+            
+            <!-- Second Column: Programmer -->
+            <div class="column">
+                <h2 class="column-header">Programmer</h2>
+                <button onclick="openMeeting()">Mødehjælp</button>
+                <button onclick="openReader()">Oplæser</button>
+                <button onclick="openPodcast()">Podcast-generator</button>
+                <button onclick="openProduktivitet()">Produktivitetshjælper</button>
+                <button onclick="openProeve()">Prøve</button>
+                <button onclick="openTaleTilTekst()">Tale-Til-Tekst</button>
+                <button onclick="openLaeseplanlægger()">Læseplanlægger</button>
+            </div>
         </div>
+        
         <button onclick="openForside()" class="home-button">Tilbage til Forside</button>
     </div>
     <script>
@@ -114,7 +147,25 @@
             window.location.href = 'Tale-til-tekst.html';
         }
         function openForside() {
-            window.location.href = 'Index.html';
+            window.location.href = 'Forside.html';
+        }
+        function openSkoleaar() {
+            window.location.href = 'Skoleaar.html';
+        }
+        function openForlob() {
+            window.location.href = 'Forlob.html';
+        }
+        function openModul() {
+            window.location.href = 'Modul.html';
+        }
+        function openGrammatiskTraener() {
+            window.location.href = 'Grammatisk-træner.html';
+        }
+        function openLaeseplanlægger() {
+            window.location.href = 'Læseplanlægger.html';
+        }
+        function openFeedback() {
+            window.location.href = 'Feedback.html';
         }
     </script>
 </body>
