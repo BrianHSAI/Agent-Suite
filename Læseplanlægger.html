@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simpel Læseplanlægger</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .btn {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #218838;
+        }
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .task-list li {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+        .task-list li.completed {
+            background-color: #f8f9fa;
+            text-decoration: line-through;
+        }
+        .status {
+            font-weight: bold;
+        }
+        .progress-input {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .progress-input input {
+            flex: 1;
+            padding: 5px;
+        }
+        .progress-input button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .progress-input button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Simpel Læseplanlægger</h1>
+    <div class="input-group">
+        <label for="bookTitle">Bogtitel:</label>
+        <input type="text" id="bookTitle" placeholder="Indtast bogtitel">
+    </div>
+    <div class="input-group">
+        <label for="pages">Sider:</label>
+        <input type="number" id="pages" placeholder="Indtast antal sider">
+    </div>
+    <div class="input-group">
+        <label for="deadline">Deadline:</label>
+        <input type="date" id="deadline">
+    </div>
+    <button class="btn" onclick="addTask()">Tilføj læseopgave</button>
+
+    <h2>Læseopgaver</h2>
+    <ul class="task-list" id="taskList"></ul>
+</div>
+
+<script>
+    // Hent gemte opgaver fra localStorage, når siden indlæses
+    document.addEventListener('DOMContentLoaded', loadTasks);
+
+    function addTask() {
+        const bookTitle = document.getElementById('bookTitle').value;
+        const pages = document.getElementById('pages').value;
+        const deadline = document.getElementById('deadline').value;
+
+        if (bookTitle && pages && deadline) {
+            const task = {
+                bookTitle,
+                pages: parseInt(pages),
+                deadline,
+                completed: false,
+                pagesRead: 0,
+                pagesPerDay: calculatePagesPerDay(pages, deadline)
+            };
+
+            saveTask(task);
+            renderTask(task);
+
+            // Clear input fields
+            document.getElementById('bookTitle').value = '';
+            document.getElementById('pages').value = '';
+            document.getElementById('deadline').value = '';
+        } else {
+            alert('Udfyld venligst alle felter.');
+        }
+    }
+
+    function calculatePagesPerDay(pages, deadline) {
+        const daysLeft = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24));
+        return Math.ceil(pages / daysLeft);
+    }
+
+    function saveTask(task) {
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks.push(task);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function renderTask(task) {
+        const taskList = document.getElementById('taskList');
+        const li = document.createElement('li');
+        if (task.completed) {
+            li.classList.add('completed');
+        }
+
+        const remainingPages = task.pages - task.pagesRead;
+        const updatedPagesPerDay = calculatePagesPerDay(remainingPages, task.deadline);
+
+        li.innerHTML = `
+            <span>${task.bookTitle} - ${task.pages} sider (Deadline: ${task.deadline})</span>
+            <span class="status">${task.completed ? 'Færdig' : 'Igangværende'}</span>
+            <span>Læst: ${task.pagesRead} sider (${remainingPages} tilbage)</span>
+            <span>${updatedPagesPerDay} sider/dag</span>
+            <div class="progress-input">
+                <input type="number" id="progress-${task.bookTitle}" placeholder="Indtast læste sider">
+                <button onclick="updateProgress('${task.bookTitle}')">Opdater</button>
+            </div>
+            <button onclick="toggleComplete('${task.bookTitle}')">${task.completed ? 'Fortryd' : 'Færdig'}</button>
+        `;
+
+        taskList.appendChild(li);
+    }
+
+    function loadTasks() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks.forEach(task => renderTask(task));
+    }
+
+    function updateProgress(bookTitle) {
+        const input = document.getElementById(`progress-${bookTitle}`);
+        const pagesRead = parseInt(input.value);
+
+        if (!isNaN(pagesRead) && pagesRead >= 0) {
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks = tasks.map(task => {
+                if (task.bookTitle === bookTitle) {
+                    task.pagesRead += pagesRead;
+                    if (task.pagesRead >= task.pages) {
+                        task.completed = true;
+                    }
+                }
+                return task;
+            });
+
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            refreshTaskList();
+        } else {
+            alert('Indtast venligst et gyldigt antal sider.');
+        }
+    }
+
+    function toggleComplete(bookTitle) {
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks = tasks.map(task => {
+            if (task.bookTitle === bookTitle) {
+                task.completed = !task.completed;
+            }
+            return task;
+        });
+
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        refreshTaskList();
+    }
+
+    function refreshTaskList() {
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = '';
+        loadTasks();
+    }
+</script>
+
+</body>
+</html>

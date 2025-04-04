@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Prompt Generator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.8;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #ece9e6, #ffffff);
+            color: #333;
+        }
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #444;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+            color: #555;
+        }
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        select:focus, input:focus, textarea:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            flex: 1;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .start-button {
+            background-color: #28a745;
+        }
+        .start-button:hover {
+            background-color: #218838;
+        }
+        .stop-button {
+            background-color: #dc3545;
+        }
+        .stop-button:hover {
+            background-color: #c82333;
+        }
+        .copy-button {
+            margin-top: 20px;
+            background-color: #17a2b8;
+        }
+        .copy-button:hover {
+            background-color: #138496;
+        }
+        .clear-button {
+            background-color: #6c757d;
+            margin-bottom: 20px;
+            width: auto;
+            padding: 8px 16px;
+        }
+        .clear-button:hover {
+            background-color: #5a6268;
+        }
+        .output {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+            color: #444;
+            font-size: 16px;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Feedback Prompt Generator</h1>
+        <form id="promptForm">
+            <label for="tone">1. Hvordan skal tonen være i feedbacken?</label>
+            <select id="tone" name="tone">
+                <option value="høflig">Høflig</option>
+                <option value="neutral">Neutral</option>
+                <option value="entusiastisk">Entusiastisk</option>
+                <option value="skuffet">Skuffet</option>
+                <option value="vred">Vred</option>
+            </select>
+
+            <label for="points">2. Hvor mange punkter skal det være?</label>
+            <input type="text" id="points" name="points" placeholder="Fx 3">
+
+            <label for="length">3. Skal det være kort, mellem eller langt?</label>
+            <select id="length" name="length">
+                <option value="kort">Kort</option>
+                <option value="mellem">Mellem</option>
+                <option value="lang">Lang</option>
+            </select>
+
+            <label for="feedback">Indsæt din feedback her:</label>
+            <textarea id="feedback" name="feedback" rows="8" placeholder="Skriv eller indtal din feedback her..."></textarea>
+            <button type="button" class="clear-button" onclick="clearFeedback()">Ryd feedback</button>
+
+            <label for="language">Sprog for feedback:</label>
+            <input type="text" id="language" name="language" placeholder="Fx engelsk">
+
+            <label for="keywords">Specielle kodeord, der skal genkendes:</label>
+            <textarea id="keywords" name="keywords" rows="4" placeholder="Det kan være en farve: 'Når jeg nævner en farve, skal du have dette med i feedback' - dette kan være nyttigt, hvis du har overstreget noget med en bestemt farve i dokumentet."></textarea>
+
+            <div class="button-group">
+                <button type="button" class="start-button" onclick="startRecording()">Start Indtaling</button>
+                <button type="button" class="stop-button" onclick="stopRecording()">Stop Indtaling</button>
+            </div>
+
+            <button type="button" onclick="generatePrompt()">Generér Prompt</button>
+            <button type="button" class="copy-button" onclick="copyToClipboard()">Kopier til udklipsholder</button>
+        </form>
+
+        <div id="output" class="output"></div>
+        <div class="footer">Lavet af: BrianHS - kontakt@brianhs.dk</div>
+    </div>
+
+    <script>
+        let recognition;
+        let isRecording = false;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = "da-DK";
+
+            recognition.maxAlternatives = 3;
+
+            recognition.onresult = function(event) {
+                const feedbackTextarea = document.getElementById('feedback');
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    feedbackTextarea.value += event.results[i][0].transcript + " ";
+                }
+            };
+
+            recognition.onend = function() {
+                if (isRecording) {
+                    console.log("Genoptager optagelse...");
+                    setTimeout(() => {
+                        recognition.start();
+                    }, 100);
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Talegenkendelsesfejl:", event.error);
+                if (isRecording && event.error !== 'no-speech') {
+                    console.log("Forsøger at genstarte efter fejl...");
+                    setTimeout(() => {
+                        recognition.start();
+                    }, 500);
+                }
+            };
+        } else {
+            alert("Din browser understøtter ikke talegenkendelse. Prøv Chrome på en desktop-enhed.");
+        }
+
+        function startRecording() {
+            if (recognition) {
+                isRecording = true;
+                recognition.start();
+                document.querySelector('.start-button').style.backgroundColor = '#dc3545';
+                document.querySelector('.start-button').textContent = 'Optager...';
+            }
+        }
+
+        function stopRecording() {
+            if (recognition) {
+                isRecording = false;
+                recognition.stop();
+                document.querySelector('.start-button').style.backgroundColor = '#28a745';
+                document.querySelector('.start-button').textContent = 'Start Indtaling';
+            }
+        }
+
+        function generatePrompt() {
+            const tone = document.getElementById('tone').value;
+            const points = document.getElementById('points').value || '3';
+            const length = document.getElementById('length').value;
+            const feedback = document.getElementById('feedback').value.trim();
+            const language = document.getElementById('language').value.trim() || 'dansk';
+            const keywords = document.getElementById('keywords').value.trim();
+
+            if (!feedback) {
+                document.getElementById('output').textContent = "Indsæt venligst din feedback i tekstboksen.";
+                return;
+            }
+
+            let prompt = `Jeg har givet feedback på en elevs opgave og ønsker at gøre den mere præcis, ${tone.toLowerCase()} og elevfokuseret. \n` +
+                         `Kan du hjælpe mig med at formulere feedbacken sådan, at den:\n` +
+                         `1. Er klar og nem at forstå. \n` +
+                         `2. Indeholder ${points} punkter med konstruktive forslag til forbedringer. \n` +
+                         `3. Bevarer en positiv og motiverende tone. \n`;
+
+            if (keywords) {
+                prompt += `Husk at inkludere følgende kodeord eller elementer, hvis de nævnes: ${keywords}\n`;
+            }
+
+            prompt += `\nHer er min nuværende feedback: \n'${feedback}'\n\n` +
+                      `Lav feedbacken i en ${length} længde. Skriv på ${language}.`;
+
+            document.getElementById('output').textContent = prompt;
+        }
+
+        function clearFeedback() {
+            document.getElementById('feedback').value = '';
+        }
+
+        function copyToClipboard() {
+            const outputElement = document.getElementById('output');
+            if (outputElement.textContent) {
+                navigator.clipboard.writeText(outputElement.textContent).then(() => {
+                    alert('Prompten er kopieret til udklipsholderen.');
+                }).catch(err => {
+                    console.error('Kunne ikke kopiere prompten:', err);
+                });
+            } else {
+                alert('Der er ingen prompt at kopiere. Generér en prompt først.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sproglig Hjælp</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f3f3;
+        }
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 28px;
+            color: #0078D4;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            color: #333;
+        }
+        select, textarea, button {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 12px;
+            font-size: 14px;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+        }
+        textarea {
+            resize: none;
+        }
+        button {
+            background-color: #0078D4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        .prompt-box {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #d0d0d0;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            color: #333;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: gray;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sproglig Hjælp</h1>
+
+        <label for="language">Vælg sprog:</label>
+        <select id="language">
+            <option value="Dansk">Dansk</option>
+            <option value="Engelsk">Engelsk</option>
+            <option value="Tysk">Tysk</option>
+        </select>
+
+        <label for="level">Vælg CERF-niveau:</label>
+        <select id="level">
+            <option value="A1">A1 - Begynder</option>
+            <option value="A2">A2</option>
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+            <option value="C2">C2 - Ekspert</option>
+        </select>
+
+        <label for="text">Indsæt tekst:</label>
+        <textarea id="text" rows="6" placeholder="Indtast din tekst her..."></textarea>
+
+        <button onclick="generatePrompt()">Generer prompt</button>
+
+        <div id="promptBox" class="prompt-box" style="display: none;"></div>
+
+        <button onclick="copyPrompt()">Kopier prompt til udklipsholder</button>
+
+        <div class="footer">
+            Lavet af: BrianHS - kontakt@brianhs.dk
+        </div>
+    </div>
+
+    <script>
+        let currentPrompt = "";
+
+        function generatePrompt() {
+            const language = document.getElementById("language").value;
+            const level = document.getElementById("level").value;
+            const text = document.getElementById("text").value;
+
+            if (!text.trim()) {
+                alert("Indtast en tekst for at generere en prompt.");
+                return;
+            }
+
+            currentPrompt = `
+                Du er en pædagogisk og didaktisk sproglig hjælper. Du har fået følgende tekst fra en elev: ${text}.
+                Din opgave bliver nu at identificere de væsentligste fejltyper - maksimalt 3. Du skal ikke rette fejlene
+                eller markere dem men udelukkende identificere dem. Efter at du har identificeret fejlene og forklaret
+                eleverne, hvilke fejltyper, der er, skal du give eleverne en grundig og meget pædagogisk forklaring på dansk
+                og generere 10 små opgaver til hver fejltype, som eleven kan øve sig på. Lad alle øvelser være på ${language}
+                så det passer en elev på niveau ${level}.
+            `.trim();
+
+            const promptBox = document.getElementById("promptBox");
+            promptBox.style.display = "block";
+            promptBox.textContent = currentPrompt;
+        }
+
+        function copyPrompt() {
+            if (!currentPrompt) {
+                alert("Generer først en prompt, inden du kopierer.");
+                return;
+            }
+
+            navigator.clipboard.writeText(currentPrompt)
+                .then(() => {
+                    alert("Prompten er kopieret til udklipsholderen!");
+                })
+                .catch(err => {
+                    alert("Kunne ikke kopiere prompten. Prøv igen.");
+                    console.error(err);
+                });
+        }
+    </script>
+</body>
+</html>
