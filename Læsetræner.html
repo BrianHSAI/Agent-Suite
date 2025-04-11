@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Læsetræner</title>
+    <style>
+        /* Generelle stilarter */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
+            line-height: 1.5;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        
+        textarea, input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 0.375rem;
+            background-color: #fff;
+            font-size: 1rem;
+        }
+        
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .button-full {
+            width: 100%;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            background-color: transparent;
+            color: #333;
+            border: 1px solid #ccc;
+            margin-bottom: 1.5rem;
+        }
+        
+        .back-button:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .reader-container {
+            position: relative;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            min-height: 300px;
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        
+        .reader-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .line {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding: 0 2rem;
+        }
+        
+        .line-previous, .line-next {
+            color: #666;
+            opacity: 0.4;
+        }
+        
+        .line-current {
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+        
+        .status {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #666;
+        }
+        
+        .button-stop {
+            background-color: #dc2626;
+        }
+        
+        .button-stop:hover {
+            background-color: #b91c1c;
+        }
+        
+        /* Skjul/vis sektioner */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Input side -->
+        <div id="inputPage" class="page active">
+            <h1>Læsetræner</h1>
+            
+            <div class="form-group">
+                <label for="text">Indsæt tekst</label>
+                <textarea 
+                    id="text" 
+                    placeholder="Indsæt den tekst, du vil træne med..." 
+                    required
+                ></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="wpm">Læsehastighed (ord pr. minut)</label>
+                <input 
+                    id="wpm" 
+                    type="number" 
+                    value="100" 
+                    min="10" 
+                    max="1000" 
+                    required
+                >
+            </div>
+            
+            <button id="startTrainingButton" class="button-full">Start læsetræning</button>
+        </div>
+        
+        <!-- Læse side -->
+        <div id="readerPage" class="page">
+            <button class="back-button" id="backButton">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;">
+                    <path d="m12 19-7-7 7-7"></path>
+                    <path d="M19 12H5"></path>
+                </svg>
+                Tilbage
+            </button>
+            
+            <div class="header">
+                <h1 id="readerTitle">Læsetræning</h1>
+                <div>
+                    <button id="startButton">Start</button>
+                    <button id="stopButton" class="button-stop" style="display: none;">Stop</button>
+                </div>
+            </div>
+            
+            <div class="reader-container">
+                <div class="reader-content" id="readerContent">
+                    <!-- Lines will be inserted here by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="status" id="status">
+                Tryk på Start for at begynde læsetræningen
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elementer - Input side
+        const inputPage = document.getElementById('inputPage');
+        const readerPage = document.getElementById('readerPage');
+        const textInput = document.getElementById('text');
+        const wpmInput = document.getElementById('wpm');
+        const startTrainingButton = document.getElementById('startTrainingButton');
+        
+        // DOM elementer - Læse side
+        const readerTitle = document.getElementById('readerTitle');
+        const readerContent = document.getElementById('readerContent');
+        const status = document.getElementById('status');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const backButton = document.getElementById('backButton');
+        
+        // Variabler til læsning
+        let lines = [];
+        let currentLineIndex = 0;
+        let isReading = false;
+        let timer = null;
+        let wordsPerMinute = 100;
+        
+        // Skift mellem sider
+        function showPage(pageId) {
+            // Skjul alle sider
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Vis den valgte side
+            document.getElementById(pageId).classList.add('active');
+        }
+        
+        // Start træning (fra input til læseside)
+        function startTraining() {
+            const text = textInput.value.trim();
+            wordsPerMinute = parseInt(wpmInput.value, 10) || 100;
+            
+            if (!text) {
+                alert('Indtast venligst noget tekst');
+                return;
+            }
+            
+            // Opdel teksten i linjer med ca. 10 ord hver
+            const words = text.split(/\s+/);
+            const wordsPerLine = 10;
+            lines = [];
+            
+            for (let i = 0; i < words.length; i += wordsPerLine) {
+                lines.push(words.slice(i, i + wordsPerLine).join(' '));
+            }
+            
+            // Opdater titel
+            readerTitle.textContent = `Læsetræning (${wordsPerMinute} ord/min)`;
+            
+            // Nulstil læsning
+            currentLineIndex = 0;
+            isReading = false;
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+            
+            // Vis start-knap, skjul stop-knap
+            startButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+            
+            // Render linjer
+            renderLines();
+            
+            // Skift til læseside
+            showPage('readerPage');
+        }
+        
+        // Render linjer baseret på nuværende indeks
+        function renderLines() {
+            readerContent.innerHTML = '';
+            
+            if (lines.length === 0) return;
+            
+            // Forrige linje (hvis den findes)
+            if (currentLineIndex > 0) {
+                const prevLine = document.createElement('div');
+                prevLine.className = 'line line-previous';
+                prevLine.textContent = lines[currentLineIndex - 1];
+                readerContent.appendChild(prevLine);
+            }
+            
+            // Nuværende linje
+            const currentLine = document.createElement('div');
+            currentLine.className = 'line line-current';
+            currentLine.textContent = lines[currentLineIndex];
+            readerContent.appendChild(currentLine);
+            
+            // Næste linje (hvis den findes)
+            if (currentLineIndex < lines.length - 1) {
+                const nextLine = document.createElement('div');
+                nextLine.className = 'line line-next';
+                nextLine.textContent = lines[currentLineIndex + 1];
+                readerContent.appendChild(nextLine);
+            }
+            
+            // Opdater status
+            status.textContent = isReading 
+                ? `Læser linje ${currentLineIndex + 1} af ${lines.length}`
+                : 'Tryk på Start for at begynde læsetræningen';
+        }
+        
+        // Start læsning
+        function startReading() {
+            currentLineIndex = 0;
+            isReading = true;
+            
+            // Vis stop-knap, skjul start-knap
+            startButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
+            
+            renderLines();
+            
+            // Beregn tid pr. linje baseret på ord pr. minut
+            const wordsPerLine = 10;
+            const minutesPerLine = wordsPerLine / wordsPerMinute;
+            const millisecondsPerLine = minutesPerLine * 60 * 1000;
+            
+            // Start timer
+            timer = setInterval(() => {
+                currentLineIndex++;
+                
+                if (currentLineIndex >= lines.length) {
+                    stopReading();
+                    return;
+                }
+                
+                renderLines();
+            }, millisecondsPerLine);
+        }
+        
+        // Stop læsning
+        function stopReading() {
+            isReading = false;
+            
+            // Vis start-knap, skjul stop-knap
+            startButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+            
+            // Ryd timer
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+            
+            renderLines();
+        }
+        
+        // Gå tilbage til inputsiden
+        function goBack() {
+            // Stop læsning hvis den er i gang
+            if (isReading) {
+                stopReading();
+            }
+            
+            showPage('inputPage');
+        }
+        
+        // Event listeners
+        startTrainingButton.addEventListener('click', startTraining);
+        startButton.addEventListener('click', startReading);
+        stopButton.addEventListener('click', stopReading);
+        backButton.addEventListener('click', goBack);
+    </script>
+</body>
+</html>
